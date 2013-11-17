@@ -1,1 +1,7 @@
 name = Personalization
+description = Create a customized experience for users based on explicit and implicit personalization
+package = personalization
+core = 7.x
+php = 5.2
+configure = admin/config/system/personalization
+dependencies[] = taxonomy

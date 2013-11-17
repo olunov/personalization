@@ -1,0 +1,296 @@
+<?php
+/**
+ * @file
+ * This file is responsible for the geolocation logic used to determine the
+ * users location and their matching location terms.
+ */
+
+define('PERSONALIZATION_GEO_VOCABULARY_NAME', 'personalization_geographic_locations');
+
+/**
+ * Returns the user's location. 
+ * 
+ * I.e. the term from location vocabulary that has the closest latitude and 
+ * longitude
+ *
+ * @return Int
+ *   The term id of the closest location term.
+ */
+function personalization_get_user_location() {
+  $latlon = personalization_get_user_latlon();
+
+  if ($latlon) {
+    $vocab = taxonomy_vocabulary_machine_name_load(PERSONALIZATION_GEO_VOCABULARY_NAME);
+    $query = db_query_range("SELECT glat.entity_id AS tid, ( 3959 * acos( cos( radians(:lat) ) * cos( radians( glat.pz_geo_latitude_value ) ) * cos( radians( glon.pz_geo_longitude_value ) - radians(:lon) ) + sin( radians(:lat) ) * sin( radians( glat.pz_geo_latitude_value ) ) ) ) AS distance FROM {field_data_pz_geo_latitude} glat LEFT JOIN {field_data_pz_geo_longitude} glon ON glat.entity_id=glon.entity_id WHERE glat.entity_type='taxonomy_term' ORDER BY distance", 0, 1, array(
+      ':lat' => $latlon['latitude'],
+      ':lon' => $latlon['longitude'],
+    ))->fetchCol('tid');
+
+    $tid = (int) current($query);
+
+    if ($tid) {
+      return $tid;
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * Gets the users latitude and longitude.
+ *
+ * @return array
+ *   The users latitude and longitude if available.
+ */
+function personalization_get_user_latlon() {
+  $settings = variable_get('personalization_settings', array());
+  $uid = personalization_get_user();
+
+  if (array_filter($settings['pz_geo']) && $uid) {
+    // Is the users location already stored?
+    $location = db_select('personalization_user_locations', 'pzl')->fields('pzl')->condition('user', $uid, '=')->execute()->fetchAssoc();
+
+    if ($location && $location['changed'] + ($settings['pz_user_score_ttl'] * 60) >= time()) {
+      return array(
+        'latitude' => $location['latitude'],
+        'longitude' => $location['longitude'],
+      );
+    }
+    elseif ($settings['pz_geo']['from_api']) {
+      // Delete location if it's expired.
+      if ($location) {
+        $deleted = db_delete('personalization_user_locations')->condition('user', $uid, '=')->execute();
+      }
+
+      // Can we grab from http://freegeoip.net?
+      if ($settings['pz_geo']['from_api'] && function_exists('curl_version') && ip_address()) {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "http://freegeoip.net/json/" . ip_address());
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_HEADER, FALSE);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        $result = json_decode(curl_exec($ch), TRUE);
+        curl_close($ch);
+
+        if ($result && isset($result['latitude']) && isset($result['longitude'])) {
+          // Add the record to the database.
+          $insert = db_insert('personalization_user_locations')->fields(array(
+            'user' => $uid,
+            'latitude' => $result['latitude'],
+            'longitude' => $result['longitude'],
+            'changed' => REQUEST_TIME,
+          ))->execute();
+
+          personalisation_user_location_score(personalization_get_user_location());
+          return array(
+            'latitude' => $result['latitude'],
+            'longitude' => $result['longitude'],
+          );
+        }
+        else {
+          return 0;
+        }
+      }
+    }
+
+    // If we've gotten here that means we need to ask the user.
+    elseif (isset($_COOKIE['has_js'])) {
+      return 0;
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * Boosts the score for the location term that is closest to the users location.
+ *
+ * @param number $tid
+ *   The term id to score.
+ */
+function personalisation_user_location_score($tid) {
+  $settings = variable_get('personalization_settings', array());
+  $uid = personalization_get_user();
+  $vocab = taxonomy_vocabulary_machine_name_load(PERSONALIZATION_GEO_VOCABULARY_NAME);
+  $weight = $settings['pz_geo_user_weight'];
+
+  // Does the user already have a location score?
+  $old = db_select('personalization_user_scores', 'pzs')->fields('pzs')->condition('user', $uid, '=')->condition('location', 0, '<>')->condition('tid', $tid, '<>')->execute()->fetchAssoc();
+
+  // Has the location not changed? I.e. there's nothing to do here.
+  if (!$old || ($old && $old['tid'] != $tid)) {
+
+    // De-weight old location.
+    if ($old) {
+      db_update('personalization_user_scores')->fields(array(
+        'location' => 0,
+        'score' => ($old['score'] - $weight),
+      ))->condition('user', $uid, '=')->condition('tid', $old['tid'], '=')->execute();
+    }
+
+    // Does the user already have a score for this tid?
+    $score = db_select('personalization_user_scores', 'pzs')->fields('pzs')->condition('user', $uid, '=')->condition('tid', $tid, '=')->execute()->fetchAssoc();
+
+    // Update existing score.
+    if ($score) {
+      if (!$score['location']) {
+        // Weight new location.
+        $score['score'] += $weight;
+        $score['location']++;
+        $score['changed'] = REQUEST_TIME;
+
+        db_update('personalization_user_scores')->fields($score)->condition('user', $uid, '=')->condition('tid', $tid, '=')->execute();
+      }
+    }
+    // Add new score.
+    else {
+      $score = db_insert('personalization_user_scores')->fields(array(
+        'user' => $uid,
+        'vid' => $vocab->vid,
+        'tid' => $tid,
+        'pages' => 0,
+        'location' => 1,
+        'score' => $weight,
+        'changed' => REQUEST_TIME,
+      ))->execute();
+    }
+  }
+}
+
+/**
+ * Adds the location vocabulary if it has not already been created.
+ *
+ * Also adds Earth continents as terms as a starting point.
+ */
+function personalization_add_geo_vocabulary() {
+  if (!taxonomy_vocabulary_machine_name_load(PERSONALIZATION_GEO_VOCABULARY_NAME)) {
+    taxonomy_vocabulary_save((object) array(
+      'name' => 'Personalization Locations',
+      'machine_name' => PERSONALIZATION_GEO_VOCABULARY_NAME,
+    ));
+
+    // Create the latitude field.
+    $field = array(
+      'field_name' => 'pz_geo_latitude',
+      'type' => 'number_decimal',
+      'label' => t('Latitude'),
+      'settings' => array(
+        'precision' => 13,
+        'scale' => 10,
+        'max_length' => 13,
+        'decimal_separator' => '.',
+      ),
+      'cardinality' => 1,
+    );
+    field_create_field($field);
+
+    // Attach the field to our taxonomy entity.
+    $instance = array(
+      'field_name' => 'pz_geo_latitude',
+      'entity_type' => 'taxonomy_term',
+      'bundle' => PERSONALIZATION_GEO_VOCABULARY_NAME,
+      'label' => t('Latitude'),
+      'description' => t('The latitude for this location, between -90 and 90'),
+      'required' => TRUE,
+      'widget' => array(
+        'type' => 'text_textfield',
+        'weight' => 3,
+      ),
+      'settings' => array(
+        'min' => -90,
+        'max' => 90,
+        'text_processing' => 0,
+      ),
+    );
+    field_create_instance($instance);
+
+    // Create the longitude field.
+    $field = array(
+      'field_name' => 'pz_geo_longitude',
+      'type' => 'number_decimal',
+      'label' => t('Longitude'),
+      'settings' => array(
+        'precision' => 15,
+        'scale' => 10,
+        'max_length' => 15,
+        'decimal_separator' => '.',
+      ),
+      'instance_settings' => array(
+        'text_processing' => 0,
+      ),
+      'cardinality' => 1,
+    );
+    field_create_field($field);
+
+    // Attach the field to our taxonomy entity.
+    $instance = array(
+      'field_name' => 'pz_geo_longitude',
+      'entity_type' => 'taxonomy_term',
+      'bundle' => PERSONALIZATION_GEO_VOCABULARY_NAME,
+      'label' => t('Longitude'),
+      'description' => t('The longitude for this location, between -180 and 180'),
+      'required' => TRUE,
+      'widget' => array(
+        'type' => 'text_textfield',
+        'weight' => 3,
+      ),
+      'settings' => array(
+        'min' => -180,
+        'max' => 180,
+        'text_processing' => 0,
+      ),
+    );
+    field_create_instance($instance);
+
+    $new_vocab = taxonomy_vocabulary_machine_name_load(PERSONALIZATION_GEO_VOCABULARY_NAME);
+
+    // Add terms to new vocabulary.
+    $locations = array(
+      'Africa' => array(
+        7,
+        21,
+      ),
+      'Europe' => array(
+        48,
+        9,
+      ),
+      'Asia' => array(
+        29,
+        89,
+      ),
+      'North America' => array(
+        46,
+        -100,
+      ),
+      'South America' => array(
+        -14,
+        -57,
+      ),
+      'Antarctica' => array(
+        -83,
+        16,
+      ),
+    );
+
+    foreach ($locations as $name => $ll) {
+      taxonomy_term_save((object) array(
+        'name' => $name,
+        'vid' => $new_vocab->vid,
+        'pz_geo_latitude' => array(
+          'und' => array(
+            array(
+              'value' => $ll[0],
+            ),
+          ),
+        ),
+        'pz_geo_longitude' => array(
+          'und' => array(
+            array(
+              'value' => $ll[1],
+            ),
+          ),
+        ),
+      ));
+    }
+  }
+}
