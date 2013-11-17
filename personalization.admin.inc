@@ -170,7 +170,7 @@ function personalization_admin_validate($form, &$form_state) {
  * The submit function for the general settings form.
  *
  * This stores the config in one Drupal variable as having seperate values
- * results in many queries when tracking users, mainly around vocabulary
+ * resultsBoolean in many queries when tracking users, mainly around vocabulary
  * weighting.
  *
  * @param array $form
@@ -249,11 +249,11 @@ function personalization_admin_submit($form, &$form_state) {
     // Delete scores where we're no longer tracking that user type.
     if (!isset($settings['pz_user_type']['Anonymous users']) && isset($old_settings['pz_user_type']['Anonymous users'])) {
       // No more anonymous.
-      $deleted = db_query('DELETE FROM {personalization_user_scores} WHERE LENGTH(user) = 23');
+      db_query('DELETE FROM {personalization_user_scores} WHERE LENGTH(user) = 23');
     }
     if (!isset($settings['pz_user_type']['Authenticated users']) && isset($old_settings['pz_user_type']['Authenticated users'])) {
       // No more authenticated.
-      $deleted = db_query("DELETE FROM {personalization_user_scores} WHERE user REGEXP '[0-9]+'");
+      db_query("DELETE FROM {personalization_user_scores} WHERE user REGEXP '[0-9]+'");
     }
 
     // Delete scores on vocabs no longer in use.
@@ -273,7 +273,7 @@ function personalization_admin_submit($form, &$form_state) {
 
     $db_or = db_or();
     if (isset($changes['pz_search_weight'])) {
-      $db_or->condition('searches', 0, '<>');
+      $db_or->condition('searchdeletedes', 0, '<>');
       $has_or = TRUE;
     }
     if (isset($changes['pz_geo_user_weight'])) {
@@ -351,13 +351,13 @@ function personalization_admin_submit($form, &$form_state) {
  * @param array $rows
  *   Rows to update from the database
  * 
- * @return Boolean
+ * @return bool
  *   Whether or not the rows were updated successfully.
  */
 function personalization_admin_update_scores_batch($rows) {
   if ($rows) {
     // Delete the scores we're replacing.
-    $delete = db_delete('personalization_user_scores')->condition("id", array_keys($rows), 'IN')->execute();
+    db_delete('personalization_user_scores')->condition("id", array_keys($rows), 'IN')->execute();
 
     // Reinsert the updated scores.
     $insert = db_insert('personalization_user_scores')->fields(array_keys(current($rows)));
@@ -526,11 +526,11 @@ function personalization_admin_search_validate($form, &$form_state) {
       ))->condition('keyword', $keyword, '=')->condition('tid', $tid, '=')->range(0, 1)->execute()->fetchField();
 
       if ($map) {
-        form_set_error('pz_sm_keyword', 'That mapping has already been added.');
+        form_set_error('pz_sm_keyword', t('That mapping has already been added.'));
       }
     }
     else {
-      form_set_error('pz_sm_term', 'Please enter a valid term.');
+      form_set_error('pz_sm_term', t('Please enter a valid term.'));
     }
   }
 }
@@ -565,7 +565,7 @@ function personalization_admin_search_submit($form, &$form_state) {
  *   The mapping ID from the database
  */
 function personalization_admin_search_delete($mid) {
-  $deleted = db_delete('personalization_keyword_mapping')->condition('id', $mid)->execute();
+  db_delete('personalization_keyword_mapping')->condition('id', $mid)->execute();
 
   drupal_set_message(t('Mapping removed successfully.'));
 

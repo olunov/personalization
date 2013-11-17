@@ -20,7 +20,6 @@ function personalization_get_user_location() {
   $latlon = personalization_get_user_latlon();
 
   if ($latlon) {
-    $vocab = taxonomy_vocabulary_machine_name_load(PERSONALIZATION_GEO_VOCABULARY_NAME);
     $query = db_query_range("SELECT glat.entity_id AS tid, ( 3959 * acos( cos( radians(:lat) ) * cos( radians( glat.pz_geo_latitude_value ) ) * cos( radians( glon.pz_geo_longitude_value ) - radians(:lon) ) + sin( radians(:lat) ) * sin( radians( glat.pz_geo_latitude_value ) ) ) ) AS distance FROM {field_data_pz_geo_latitude} glat LEFT JOIN {field_data_pz_geo_longitude} glon ON glat.entity_id=glon.entity_id WHERE glat.entity_type='taxonomy_term' ORDER BY distance", 0, 1, array(
       ':lat' => $latlon['latitude'],
       ':lon' => $latlon['longitude'],
@@ -59,7 +58,7 @@ function personalization_get_user_latlon() {
     elseif ($settings['pz_geo']['from_api']) {
       // Delete location if it's expired.
       if ($location) {
-        $deleted = db_delete('personalization_user_locations')->condition('user', $uid, '=')->execute();
+        db_delete('personalization_user_locations')->condition('user', $uid, '=')->execute();
       }
 
       // Can we grab from http://freegeoip.net?
@@ -74,14 +73,14 @@ function personalization_get_user_latlon() {
 
         if ($result && isset($result['latitude']) && isset($result['longitude'])) {
           // Add the record to the database.
-          $insert = db_insert('personalization_user_locations')->fields(array(
+          db_insert('personalization_user_locations')->fields(array(
             'user' => $uid,
             'latitude' => $result['latitude'],
             'longitude' => $result['longitude'],
             'changed' => REQUEST_TIME,
           ))->execute();
 
-          personalisation_user_location_score(personalization_get_user_location());
+          personalization_user_location_score(personalization_get_user_location());
           return array(
             'latitude' => $result['latitude'],
             'longitude' => $result['longitude'],
@@ -108,7 +107,7 @@ function personalization_get_user_latlon() {
  * @param number $tid
  *   The term id to score.
  */
-function personalisation_user_location_score($tid) {
+function personalization_user_location_score($tid) {
   $settings = variable_get('personalization_settings', array());
   $uid = personalization_get_user();
   $vocab = taxonomy_vocabulary_machine_name_load(PERSONALIZATION_GEO_VOCABULARY_NAME);

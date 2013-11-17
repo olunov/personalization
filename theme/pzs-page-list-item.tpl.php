@@ -5,6 +5,6 @@
  */
  ?>
  <li>
-<p><?php echo l($item->title, 'node/' . $item->nid); ?></p>
+<p><?php echo l(check_plain($item->title), 'node/' . $item->nid); ?></p>
 <?php echo $item->teaser; ?>
 </li>

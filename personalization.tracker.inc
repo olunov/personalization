@@ -116,7 +116,7 @@ function personalization_update_scores($terms, $type = 'page') {
 
   // Need to delete before INSERT as db_merge does not support multiple records.
   if ($tids) {
-    $deleted = db_delete('personalization_user_scores')->condition('user', $uid, '=')->condition('tid', $tids, 'IN')->execute();
+    db_delete('personalization_user_scores')->condition('user', $uid, '=')->condition('tid', $tids, 'IN')->execute();
   }
 
   $insert = db_insert('personalization_user_scores')->fields(array(
@@ -147,8 +147,6 @@ function personalization_update_scores($terms, $type = 'page') {
  *   The same search term after we've recored it.
  */
 function personalization_track_search($text) {
-  $settings = variable_get('personalization_settings', array());
-
   $result = db_select('personalization_keyword_mapping', 'pkm')->fields('pkm', array(
     'tid',
     'vid',
@@ -165,7 +163,6 @@ function personalization_track_search($text) {
  * Breaks out search keywords from Google and Bing and scores them.
  */
 function personalization_track_external_search() {
-  $settings = variable_get('personalization_settings', array());
   $keywords = array();
   $q = array();
 
@@ -212,7 +209,6 @@ function personalization_expire_scores() {
  *   The array of matched items.
  */
 function personalization_match_content($limit = 10, $offset = 0, $matches_only = FALSE, $paginate = FALSE) {
-  $settings = variable_get('personalization_settings', array());
   $uid = personalization_get_user();
 
   $query = db_select('node', 'n');

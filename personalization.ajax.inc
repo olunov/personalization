@@ -105,17 +105,17 @@ function personalization_ajax_user_location() {
   $uid = personalization_get_user();
 
   if ($_POST['latitude'] && $_POST['longitude']) {
-    $deleted = db_delete('personalization_user_locations')->condition('user', $uid, '=')->execute();
+    db_delete('personalization_user_locations')->condition('user', $uid, '=')->execute();
 
     // Add the record to the database.
-    $insert = db_insert('personalization_user_locations')->fields(array(
+    db_insert('personalization_user_locations')->fields(array(
       'user' => $uid,
       'latitude' => $_POST['latitude'],
       'longitude' => $_POST['longitude'],
       'changed' => REQUEST_TIME,
     ))->execute();
 
-    personalisation_user_location_score(personalization_get_user_location());
+    personalization_user_location_score(personalization_get_user_location());
 
     return drupal_json_output(array(
       'success' => TRUE,
@@ -136,8 +136,6 @@ function personalization_ajax_user_location() {
  *   The maximum nuber of items to return.
  */
 function personalization_ajax_get_list($type, $limit = 10) {
-  $uid = personalization_get_user();
-
   switch ($type) {
     case 'block':
       $block = block_load('personalization', 'personalized_content');
@@ -183,9 +181,7 @@ function personalization_ajax_get_list($type, $limit = 10) {
       $page = preg_replace($pattern, $replace, $page);
 
       // Replace the url without page number.
-      $url = url($_GET['q'], array(
-        'query' => $query,
-      ));
+      $url = url($_GET['q']);
       $new_url = rtrim(preg_replace('/([?&])page=[^&]+(&|$)/', '$1', $_SERVER['HTTP_REFERER']), '&');
 
       $page = str_replace($url, $new_url, $page);
