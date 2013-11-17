@@ -50,7 +50,7 @@ var pzs_loader = '';
       if (personalization.$listing.length) {
         personalization.get_list();
       }
-	},
+    },
 
     get_location: function() {
       if (navigator.geolocation) {
@@ -76,7 +76,7 @@ var pzs_loader = '';
 
     get_block: function() {
       personalization.$block.html(pzs_loader);
-      $.ajax({          
+      $.ajax({
         url: Drupal.settings.basePath + '?q=personalization/ajax/get-block',
         dataType: 'text',
         success: function(response) {
@@ -88,7 +88,7 @@ var pzs_loader = '';
     get_list: function() {
       var limit = personalization.$listing.find('ul:not(.pager) li').length;
       var page = decodeURI((RegExp('page=' + '(.+?)(&|$)').exec(location.search)||[,0])[1]);
-    	
+
       personalization.$listing.html(pzs_loader);
       $.ajax({
         type: 'GET',

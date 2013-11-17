@@ -260,7 +260,7 @@ function personalization_admin_submit($form, &$form_state) {
     if (isset($changes['pz_vocabularies'])) {
       $active_vocabularies = array_keys($settings['pz_vocabulary_weights']);
       $active_vocabularies[] = $geo_v->vid;
-      $delete = db_delete('personalization_user_scores')->condition('vid', $active_vocabularies, 'NOT IN')->execute();
+      db_delete('personalization_user_scores')->condition('vid', $active_vocabularies, 'NOT IN')->execute();
     }
 
     // Add the geo vid to the weights.
