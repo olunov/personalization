@@ -216,3 +216,10 @@ function personalization_install() {
 
   variable_set('personalization_settings', $settings);
 }
+
+/**
+ * Implements hook_uninstall().
+ */
+function personalization_uninstall() {
+  variable_del('personalization_settings');
+}

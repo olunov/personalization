@@ -9,7 +9,6 @@
  * register displays.
  */
 
-require_once 'personalization.admin.inc';
 require_once 'personalization.ajax.inc';
 require_once 'personalization.geo.inc';
 require_once 'personalization.tracker.inc';
@@ -68,6 +67,8 @@ function personalization_menu() {
     'access arguments' => array(
       'administer personalization settings',
     ),
+    'file' => 'personalization.admin.inc',
+    'file path' => drupal_get_path('module', 'personalization'),
     'type' => MENU_CALLBACK,
   );
 
@@ -81,12 +82,16 @@ function personalization_menu() {
     'access arguments' => array(
       'administer personalization settings',
     ),
+    'file' => 'personalization.admin.inc',
+    'file path' => drupal_get_path('module', 'personalization'),
     'type' => MENU_NORMAL_ITEM,
   );
 
   $items['admin/config/system/personalization/settings'] = array(
     'title' => 'General settings',
     'type' => MENU_DEFAULT_LOCAL_TASK,
+    'file' => 'personalization.admin.inc',
+    'file path' => drupal_get_path('module', 'personalization'),
   );
 
   $items['admin/config/system/personalization/search'] = array(
@@ -98,6 +103,8 @@ function personalization_menu() {
     'access arguments' => array(
       'administer personalization settings',
     ),
+    'file' => 'personalization.admin.inc',
+    'file path' => drupal_get_path('module', 'personalization'),
   );
 
   $items['admin/config/system/personalization/search/delete/%'] = array(
@@ -108,6 +115,8 @@ function personalization_menu() {
     'access arguments' => array(
       'administer personalization settings',
     ),
+    'file' => 'personalization.admin.inc',
+    'file path' => drupal_get_path('module', 'personalization'),
     'type' => MENU_CALLBACK,
   );
 
