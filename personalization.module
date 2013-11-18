@@ -129,9 +129,10 @@ function personalization_permission() {
  * Implements hook_init().
  */
 function personalization_init() {
-  drupal_add_js(array(
-    'personalization_module_path' => drupal_get_path('module', 'personalization'),
-  ), 'setting');
+  $setting = array(
+    'module_path' => drupal_get_path('module', 'personalization'),
+  );
+  drupal_add_js(array('personalization' => $setting), 'setting');
   drupal_add_js(drupal_get_path('module', 'personalization') . '/js/personalization.js');
 }
 
@@ -154,7 +155,7 @@ function personalization_node_view($node, $view_mode, $langcode) {
     $setting = array(
       'currentNid' => $node->nid,
     );
-    drupal_add_js($setting, 'setting');
+    drupal_add_js(array('personalization' => $setting), 'setting');
   }
 }
 
@@ -276,7 +277,7 @@ function personalization_block_view($delta = '') {
 /**
  * Returns a paginated list of personalized content.
  *
- * @return String 
+ * @return String
  *   HTML for paginated listing.
  */
 function personalization_paginated_list($nodes_per_page = 10) {

@@ -18,12 +18,12 @@ var pzs_loader = '';
         nid: null
       };
 
-      if (typeof Drupal.settings.currentNid != undefined) {
-        data.nid = Drupal.settings.currentNid;
+      if (typeof Drupal.settings.personalization.currentNid != undefined) {
+        data.nid = Drupal.settings.personalization.currentNid;
       }
 
       if (pzs_loader == '') {
-        pzs_loader = Drupal.settings.basePath + Drupal.settings.personalization_module_path + '/ajax-loader.gif';
+        pzs_loader = Drupal.settings.basePath + Drupal.settings.personalization.module_path + '/ajax-loader.gif';
       }
       pzs_loader = '<img src="' + pzs_loader + '" alt="loading" />';
 

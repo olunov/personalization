@@ -21,9 +21,6 @@ function personalization_admin() {
   drupal_add_css(drupal_get_path('module', 'personalization') . '/css/admin_form.css');
   drupal_add_js(drupal_get_path('module', 'personalization') . '/js/admin_form.js');
 
-  $form['#submit'][] = 'personalization_admin_submit';
-  $form['#validate'][] = 'personalization_admin_validate';
-
   $form['user_settings'] = array(
     '#type' => 'fieldset',
     '#title' => t('User settings'),
@@ -350,7 +347,7 @@ function personalization_admin_submit($form, &$form_state) {
  *
  * @param array $rows
  *   Rows to update from the database
- * 
+ *
  * @return bool
  *   Whether or not the rows were updated successfully.
  */
