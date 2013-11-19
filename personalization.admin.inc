@@ -452,13 +452,6 @@ function personalization_admin_search() {
 function personalization_admin_search_form() {
   $form = array();
 
-  $form['#validate'] = array(
-    'personalization_admin_search_validate',
-  );
-  $form['#submit'] = array(
-    'personalization_admin_search_submit',
-  );
-
   $form['pz_sm_new_mapping'] = array(
     '#type' => 'fieldset',
     '#title' => t('Add new search keyword mapping'),
@@ -495,7 +488,7 @@ function personalization_admin_search_form() {
  * @param array $form_state
  *   The form state array
  */
-function personalization_admin_search_validate($form, &$form_state) {
+function personalization_admin_search_form_validate($form, &$form_state) {
   $keyword = $form_state['values']['pz_sm_keyword'];
   $tid = explode('(tid=', rtrim($form_state['values']['pz_sm_term'], ')'));
 
@@ -530,6 +523,9 @@ function personalization_admin_search_validate($form, &$form_state) {
       form_set_error('pz_sm_term', t('Please enter a valid term.'));
     }
   }
+  else {
+    form_set_error('pz_sm_term', t('Please enter a valid term.'));
+  }
 }
 
 /**
@@ -540,7 +536,7 @@ function personalization_admin_search_validate($form, &$form_state) {
  * @param array $form_state
  *   The form state array
  */
-function personalization_admin_search_submit($form, &$form_state) {
+function personalization_admin_search_form_submit($form, &$form_state) {
   $term = taxonomy_term_load((int) $form_state['values']['pz_sm_term']);
 
   $id = db_insert('personalization_keyword_mapping')->fields(array(
