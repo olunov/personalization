@@ -177,8 +177,15 @@ function personalization_admin_validate($form, &$form_state) {
  */
 function personalization_admin_submit($form, &$form_state) {
   $settings = $form_state['values'];
-  $geo_v = taxonomy_vocabulary_machine_name_load(PERSONALIZATION_GEO_VOCABULARY_NAME);
   unset($settings['submit'], $settings['form_build_id'], $settings['form_token'], $settings['form_id'], $settings['op']);
+  
+  // Check geo checkboxes and if one's been set make sure the geo vocabulary is
+  // available.
+  if (array_filter($settings['pz_geo'])) {
+  	personalization_add_geo_vocabulary();
+  }
+  
+  $geo_v = taxonomy_vocabulary_machine_name_load(PERSONALIZATION_GEO_VOCABULARY_NAME);
 
   // Loop through the vocabularies and store their weight with them reather than
   // having to link later.
@@ -202,13 +209,6 @@ function personalization_admin_submit($form, &$form_state) {
   if (!isset($settings['pz_vocabulary_weights'])) {
     $settings['pz_vocabulary_weights'] = array();
   }
-
-  // Check geo checkboxes and if one's been set make sure the geo vocabulary is
-  // available.
-  if (array_filter($settings['pz_geo'])) {
-    personalization_add_geo_vocabulary();
-  }
-
   // Grab the old setting so we can see what's changed.
   $old_settings = variable_get('personalization_settings', array());
 

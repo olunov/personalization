@@ -98,7 +98,7 @@ function personalization_get_user_latlon() {
     }
   }
 
-  return NULL;
+  return 0;
 }
 
 /**

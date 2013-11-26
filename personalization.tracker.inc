@@ -219,7 +219,10 @@ function personalization_match_content($limit = 10, $offset = 0, $matches_only =
     'nid',
     'title',
     'type',
-  ))->condition('pzs.user', $uid, '=');
+  ))
+  ->isNotNull('n.nid');
+  
+  $query->condition('pzs.user', $uid, '=');
 
   if ($matches_only) {
     $query->isNotNull('pzs.score')->condition('pzs.score', 0, '>');

@@ -4,3 +4,4 @@ package = personalization
 core = 7.x
 configure = admin/config/system/personalization
 dependencies[] = taxonomy
+dependencies[] = number
