@@ -295,6 +295,13 @@ function personalization_block_view($delta = '') {
 }
 
 /**
+ * Implements hook_flush_caches().
+ */
+function personalization_flush_caches() {
+  return array('cache_personalization');
+}
+
+/**
  * Returns a paginated list of personalized content.
  *
  * @return String
@@ -314,12 +321,5 @@ function personalization_paginated_list($nodes_per_page = 10) {
   return theme('pzs_list_page', array(
     'nodes' => implode('', $items),
   ));
-}
-
-/**
- * Implements hook_flush_caches().
- */
-function personalization_flush_caches() {
-  return array('cache_personalization');
 }
 

@@ -3,7 +3,7 @@
  * @file
  * This file contains the AJAX end points for the module
  */
- 
+
 include_once "personalization.tracker.inc";
 
 /**
