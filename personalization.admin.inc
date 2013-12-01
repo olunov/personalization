@@ -36,14 +36,14 @@ function personalization_admin() {
     '#required' => TRUE,
   );
 
-  $form['user_settings']['pz_user_type'] = array(
-    '#type' => 'checkboxes',
-    '#title' => t("which user types should be included?"),
-    '#default_value' => $settings['pz_user_type'],
-    '#options' => array(
-      'Anonymous users' => t('Anonymous users'),
-      'Authenticated users' => t('Authenticated users'),
-    ),
+  $form['user_settings']['pz_user_content_ttl'] = array(
+    '#type' => 'textfield',
+    '#title' => t("User's content cache TTL"),
+    '#description' => t('Number of minutes a users personalized content will be cached for.'),
+    '#default_value' => $settings['pz_user_content_ttl'],
+    '#size' => 6,
+    '#maxlength' => 6,
+    '#required' => TRUE,
   );
 
   $form['taxonomony_based'] = array(
@@ -106,7 +106,7 @@ function personalization_admin() {
       'from_api' => t('Request location from the users IP automatically from http://freegeoip.net/ API'),
       'ask_user' => t('Ask the user for their location.'),
     ),
-    '#description' => t("If you select to ascertain the location from freegeoip.net you must have cURL enabled on your server. If you select both options the user will only be asked if http://freegeoip.net/ cannot ascertain the location. Requesting the location from the user will require them to be using a HTML5 compliant browser and your Drupal theme to be HTML5."),
+    '#description' => t("If you select both options the user will only be asked if http://freegeoip.net/ cannot ascertain the location. Requesting the location from the user will require them to be using a HTML5 compliant browser and your Drupal theme to be HTML5."),
   );
 
   $form['geographic_based']['pz_geo_user_weight'] = array(
@@ -144,13 +144,14 @@ function personalization_admin() {
  *   The form state array
  */
 function personalization_admin_validate($form, &$form_state) {
-  // Ensure the profile TTL is valid.
-  if (!$form_state['values']['pz_user_score_ttl'] || $form_state['values']['pz_user_score_ttl'] == 0 || !is_numeric($form_state['values']['pz_user_score_ttl'])) {
-    // 1 month.
-    $form_state['values']['pz_user_score_ttl'] = 43829;
+// Ensure the profile TTL is valid.
+  if (!$form_state['values']['pz_user_score_ttl'] || !is_numeric($form_state['values']['pz_user_score_ttl'])) {
+    form_set_error('pz_user_score_ttl', t('Please enter a valid number of minutes.'));
   }
-  else {
-    $form_state['values']['pz_user_score_ttl'] = (int) $form_state['values']['pz_user_score_ttl'];
+
+  // Ensure the cache TTL is valid.
+  if (!is_numeric($form_state['values']['pz_user_content_ttl'])) {
+    form_set_error('pz_user_content_ttl', t('Please enter a valid number of minutes.'));
   }
 
   // Ensure the weightings are valid.
@@ -178,16 +179,16 @@ function personalization_admin_validate($form, &$form_state) {
 function personalization_admin_submit($form, &$form_state) {
   $settings = $form_state['values'];
   unset($settings['submit'], $settings['form_build_id'], $settings['form_token'], $settings['form_id'], $settings['op']);
-  
+
   // Check geo checkboxes and if one's been set make sure the geo vocabulary is
   // available.
   if (array_filter($settings['pz_geo'])) {
   	personalization_add_geo_vocabulary();
   }
-  
+
   $geo_v = taxonomy_vocabulary_machine_name_load(PERSONALIZATION_GEO_VOCABULARY_NAME);
 
-  // Loop through the vocabularies and store their weight with them reather than
+  // Loop through the vocabularies and store their weight with them rather than
   // having to link later.
   foreach ($settings['pz_vocabularies'] as $vid => $v) {
     if ($v) {
@@ -209,6 +210,7 @@ function personalization_admin_submit($form, &$form_state) {
   if (!isset($settings['pz_vocabulary_weights'])) {
     $settings['pz_vocabulary_weights'] = array();
   }
+
   // Grab the old setting so we can see what's changed.
   $old_settings = variable_get('personalization_settings', array());
 
@@ -232,7 +234,6 @@ function personalization_admin_submit($form, &$form_state) {
 
   // Recalculate all scores.
   $changes = array_diff($top_level_settings, $top_level_old_settings);
-  $changes['pz_user_type'] = array_diff($settings['pz_user_type'], $old_settings['pz_user_type']);
   $changes['pz_vocabularies'] = array_diff($settings['pz_vocabularies'], $old_settings['pz_vocabularies']);
   $changes['pz_geo'] = array_diff($settings['pz_geo'], $old_settings['pz_geo']);
   $changes['pz_vocabulary_weights'] = array_diff($settings['pz_vocabulary_weights'], $old_settings['pz_vocabulary_weights']);
@@ -242,16 +243,7 @@ function personalization_admin_submit($form, &$form_state) {
   if ($changes) {
     // Delete expired scores.
     personalization_expire_scores();
-
-    // Delete scores where we're no longer tracking that user type.
-    if (!isset($settings['pz_user_type']['Anonymous users']) && isset($old_settings['pz_user_type']['Anonymous users'])) {
-      // No more anonymous.
-      db_query('DELETE FROM {personalization_user_scores} WHERE LENGTH(user) = 23');
-    }
-    if (!isset($settings['pz_user_type']['Authenticated users']) && isset($old_settings['pz_user_type']['Authenticated users'])) {
-      // No more authenticated.
-      db_query("DELETE FROM {personalization_user_scores} WHERE user REGEXP '[0-9]+'");
-    }
+    cache_clear_all('*', 'cache_personalization', TRUE);
 
     // Delete scores on vocabs no longer in use.
     if (isset($changes['pz_vocabularies'])) {

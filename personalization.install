@@ -189,6 +189,9 @@ function personalization_schema() {
     'primary key' => array('user'),
   );
 
+  // Cache table for users results
+  $schema['cache_personalization'] = drupal_get_schema_unprocessed('system', 'cache');
+
   return $schema;
 }
 
@@ -199,6 +202,7 @@ function personalization_install() {
   // Set the modules default settings.
   $settings = array(
     'pz_user_score_ttl' => 43829,
+    'pz_user_content_ttl' => 10,
     'pz_user_type' => array(
       'Anonymous users' => 0,
       'Authenticated users' => 0,

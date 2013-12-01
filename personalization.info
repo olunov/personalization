@@ -3,5 +3,6 @@ description = Create a customized experience for users based on explicit and imp
 package = personalization
 core = 7.x
 configure = admin/config/system/personalization
+scripts[] = js/personalization.js
 dependencies[] = taxonomy
 dependencies[] = number

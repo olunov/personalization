@@ -37,19 +37,19 @@ var pzs_loader = '';
             if (response.get_location) {
               personalization.get_location();
             }
+            
+            personalization.$block = $('#block-personalization-personalized-content');
+    	    if (personalization.$block.length) {
+    	      personalization.get_block();
+    	    }
+
+    	    personalization.$listing = $('#personalized-content-list');
+    	    if (personalization.$listing.length) {
+    	      personalization.get_list();
+    	    }
           }
         }
       });
-
-      personalization.$block = $('#block-personalization-personalized-content');
-      if (personalization.$block.length) {
-        personalization.get_block();
-      }
-
-      personalization.$listing = $('#personalized-content-list');
-      if (personalization.$listing.length) {
-        personalization.get_list();
-      }
     },
 
     get_location: function() {

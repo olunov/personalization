@@ -3,7 +3,7 @@
  * @file
  * This file contains the AJAX end points for the module
  */
-
+include_once "personalization.tracker.inc";
 /**
  * Implements hook_init().
  */
@@ -17,7 +17,7 @@ function personalization_ajax_init() {
   if ($response['track']) {
     // Do we need the location?
     $location = personalization_get_user_latlon();
-    if ($location === 0) {
+    if (!$location) {
       $response['get_location'] = TRUE;
     }
 
@@ -30,6 +30,7 @@ function personalization_ajax_init() {
     if (isset($_POST['path'])) {
       $url = parse_url(check_plain($_POST['path']));
       if (isset($url['path'])) {
+        // Trim the slashes and get the path sections as an array.
         $url['path'] = explode('/', trim($url['path'], '/'));
       }
       $keywords = array();
@@ -66,7 +67,7 @@ function personalization_ajax_init() {
 
 /**
  * Autocomplete endpoint for the term field on the "Add mapping" form.
- * 
+ *
  * Results are limited to the vocabularies set under "General settings"
  *
  * @param String $str
@@ -104,7 +105,7 @@ function personalization_ajax_admin_search_terms($str = NULL) {
 function personalization_ajax_user_location() {
   $uid = personalization_get_user();
 
-  if ($_POST['latitude'] && $_POST['longitude']) {
+  if (isset($_POST['latitude']) && $_POST['latitude'] && isset($_POST['longitude']) && $_POST['longitude']) {
     db_delete('personalization_user_locations')->condition('user', $uid, '=')->execute();
 
     // Add the record to the database.
@@ -138,6 +139,7 @@ function personalization_ajax_user_location() {
 function personalization_ajax_get_list($type, $limit = 10) {
   switch ($type) {
     case 'block':
+      // Get the rendered block with this user's personalized content.
       $block = block_load('personalization', 'personalized_content');
       $block_content = _block_render_blocks(array(
         $block,
@@ -147,6 +149,7 @@ function personalization_ajax_get_list($type, $limit = 10) {
       break;
 
     case 'page':
+      // Get the rendered HTML list with this user's personalized content.
       if (isset($_GET['page']) && is_numeric($_GET['$page'])) {
         $active_page = (int) $_GET['page'];
       }
@@ -154,10 +157,12 @@ function personalization_ajax_get_list($type, $limit = 10) {
         $active_page = 0;
       }
 
-      // Grab the pages.
+      // Grab the paginated listing.
       $page = personalization_paginated_list($limit, ($active_page * $limit), FALSE, TRUE);
 
-      // Get the correct url without the page param.
+      // Get the correct url without the page param. We're doing this because 
+      // the Drupal pager takes the current URL, this means the pager links 
+      // would have the AJAX url.
       preg_match('|(.*?)(&?)page=([0-9])|', $_SERVER['HTTP_REFERER'], $matches);
       if (isset($matches[1])) {
         $path = $matches[1];
