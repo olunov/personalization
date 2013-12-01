@@ -64,8 +64,7 @@ function personalization_track_page($nid = NULL) {
 }
 
 /**
- * Updates the user's scores with for the terms supplied based on the type of
- * tracking.
+ * Updates the user's scores with for the terms supplied.
  *
  * @param array $terms
  *   The terms that need to have their scores updated.
@@ -80,7 +79,7 @@ function personalization_update_scores($terms, $type = 'page') {
   $pages = 0;
   $searches = 0;
 
-  // Get the users current scores for the user so we can increase them where appropriate.
+  // Get the users current scores so we can increase them where appropriate.
   $result = db_select('personalization_user_scores', 'pzs')->fields('pzs')->condition('user', $uid, '=')->execute()->fetchAll();
 
   // Loop through the current scores and add them to a new array with a
@@ -156,6 +155,8 @@ function personalization_update_scores($terms, $type = 'page') {
 }
 
 /**
+ * Score terms based on an internal site search.
+ *
  * Scores terms for the user where their search keywords from an internal site
  * search match one of the admin defined mappings.
  *
@@ -181,6 +182,8 @@ function personalization_track_search($text) {
 }
 
 /**
+ * Score terms based on an external search.
+ *
  * Scores terms for the user where their search keywords from a Google or Bing
  * search match one of the admin defined mappings.
  */
@@ -216,6 +219,8 @@ function personalization_expire_scores() {
 }
 
 /**
+ * Returns a list nodes relevant to the user's behaviour.
+ *
  * Returns a list of nodes which have been scored based on the users
  * interactions with the site. The list is sorted descending so that the most
  * relevant content is first.
@@ -249,7 +254,6 @@ function personalization_match_content($limit = 10, $offset = 0, $matches_only =
     }
     else {
       // No cache find so let's do the heavey lifting.
-
       // Start our select query by selecting the tables and creating a SUM().
       $query = db_select('node', 'n');
       $query->leftJoin('taxonomy_index', 'ti', "n.nid = ti.nid");
@@ -262,7 +266,7 @@ function personalization_match_content($limit = 10, $offset = 0, $matches_only =
       ))
       ->isNotNull('n.nid');
 
-      // Only get this user's matches
+      // Only get this user's matches.
       $query->condition('pzs.user', $uid, '=');
 
       // If we only want content that matches the user's behaviour we need to

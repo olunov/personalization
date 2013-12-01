@@ -36,6 +36,8 @@ function personalization_get_user_location() {
 }
 
 /**
+ * Get the users latitude and longitude.
+ *
  * Gets the users latitude and longitude from the methods defined in the config
  * form. Returns a 0 if the location cannot be ascertained.
  *
@@ -46,7 +48,7 @@ function personalization_get_user_latlon() {
   $settings = variable_get('personalization_settings', array());
   $uid = personalization_get_user();
 
-  // Check if we're doing location personalization
+  // Check if we're doing location personalization.
   if (array_filter($settings['pz_geo']) && $uid) {
     // Is the users location already stored?
     $location = db_select('personalization_user_locations', 'pzl')->fields('pzl')->condition('user', $uid, '=')->execute()->fetchAssoc();
@@ -62,7 +64,7 @@ function personalization_get_user_latlon() {
       // Can we grab from http://freegeoip.net?
       if ($settings['pz_geo']['from_api'] && ip_address()) {
         $request = drupal_http_request("http://freegeoip.net/json/" . ip_address(), array(
-          'timeout' => 10
+          'timeout' => 10,
         ));
 
         if (property_exists($request, 'data')) {
@@ -88,7 +90,7 @@ function personalization_get_user_latlon() {
 
           // Attribute the location term with the user location score.
           personalization_user_location_score(personalization_get_user_location());
-          
+
           return array(
             'latitude' => $result['latitude'],
             'longitude' => $result['longitude'],
@@ -110,6 +112,8 @@ function personalization_get_user_latlon() {
 }
 
 /**
+ * Score the location term closest to the user's location.
+ *
  * Boosts the score for the location term that is closest to the users
  * location. The score weighting is defined in the config form.
  *

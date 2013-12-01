@@ -144,7 +144,7 @@ function personalization_admin() {
  *   The form state array
  */
 function personalization_admin_validate($form, &$form_state) {
-// Ensure the profile TTL is valid.
+  // Ensure the profile TTL is valid.
   if (!$form_state['values']['pz_user_score_ttl'] || !is_numeric($form_state['values']['pz_user_score_ttl'])) {
     form_set_error('pz_user_score_ttl', t('Please enter a valid number of minutes.'));
   }
@@ -183,7 +183,7 @@ function personalization_admin_submit($form, &$form_state) {
   // Check geo checkboxes and if one's been set make sure the geo vocabulary is
   // available.
   if (array_filter($settings['pz_geo'])) {
-  	personalization_add_geo_vocabulary();
+    personalization_add_geo_vocabulary();
   }
 
   $geo_v = taxonomy_vocabulary_machine_name_load(PERSONALIZATION_GEO_VOCABULARY_NAME);

@@ -3,7 +3,9 @@
  * @file
  * This file contains the AJAX end points for the module
  */
+ 
 include_once "personalization.tracker.inc";
+
 /**
  * Implements hook_init().
  */
@@ -160,8 +162,8 @@ function personalization_ajax_get_list($type, $limit = 10) {
       // Grab the paginated listing.
       $page = personalization_paginated_list($limit, ($active_page * $limit), FALSE, TRUE);
 
-      // Get the correct url without the page param. We're doing this because 
-      // the Drupal pager takes the current URL, this means the pager links 
+      // Get the correct url without the page param. We're doing this because
+      // the Drupal pager takes the current URL, this means the pager links
       // would have the AJAX url.
       preg_match('|(.*?)(&?)page=([0-9])|', $_SERVER['HTTP_REFERER'], $matches);
       if (isset($matches[1])) {
