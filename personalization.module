@@ -322,4 +322,3 @@ function personalization_paginated_list($nodes_per_page = 10) {
     'nodes' => implode('', $items),
   ));
 }
-
