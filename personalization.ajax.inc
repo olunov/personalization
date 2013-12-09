@@ -25,7 +25,7 @@ function personalization_ajax_init() {
 
     // Track the page.
     if (isset($_POST['nid']) && is_numeric($_POST['nid'])) {
-      personalization_track_page(check_plain($_POST['nid']));
+      personalization_track_page((int) $_POST['nid']);
     }
 
     // Track internal site search.
@@ -193,7 +193,8 @@ function personalization_ajax_get_list($type, $limit = 10) {
 
       $page = str_replace($url, $new_url, $page);
 
-      die($page);
+      echo $page;
+      drupal_exit();
       break;
   }
 }

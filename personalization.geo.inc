@@ -54,7 +54,7 @@ function personalization_get_user_latlon() {
     $location = db_select('personalization_user_locations', 'pzl')->fields('pzl')->condition('user', $uid, '=')->execute()->fetchAssoc();
 
     // Is the saved location still fresh?
-    if ($location && $location['changed'] + ($settings['pz_user_score_ttl'] * 60) >= time()) {
+    if ($location && $location['changed'] + ($settings['pz_user_score_ttl'] * 60) >= REQUEST_TIME) {
       return array(
         'latitude' => $location['latitude'],
         'longitude' => $location['longitude'],

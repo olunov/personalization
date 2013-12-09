@@ -12,13 +12,7 @@
  *   Whether or not the user should be tracked.
  */
 function personalization_trackable() {
-  global $user;
-
-  if (user_access('use personalization', $user)) {
-    return TRUE;
-  }
-
-  return FALSE;
+  return user_access('use personalization');
 }
 
 /**
@@ -29,10 +23,13 @@ function personalization_track_page($nid = NULL) {
 
   // Only track if vocabs have been selected.
   if ($settings['pz_vocabularies']) {
-    if (!$nid) {
+    if (!$nid || !is_numeric($nid)) {
       $n = menu_get_object();
       if ($n) {
         $nid = $n->nid;
+      }
+      else {
+        $nid = NULL;
       }
     }
 
@@ -296,7 +293,7 @@ function personalization_match_content($limit = 10, $offset = 0, $matches_only =
       }
 
       // Cache the results of this query for next time.
-      $ttl = time() + ($settings['pz_user_content_ttl'] * 60);
+      $ttl = REQUEST_TIME + ($settings['pz_user_content_ttl'] * 60);
       cache_set('content:' . $uid . ':' . $cache_key, $content[$cache_key], 'cache_personalization', $ttl);
     }
   }
