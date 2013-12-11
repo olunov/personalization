@@ -370,7 +370,7 @@ function personalization_admin_update_scores_batch_finished() {
  */
 function personalization_admin_search() {
   $return = array();
-  
+
   // Add mapping form.
   $form = drupal_get_form('personalization_admin_search_form');
   $return[] = $form;
@@ -421,14 +421,14 @@ function personalization_admin_search() {
     );
   }
 
-  // Add the table to the return array
+  // Add the table to the return array.
   $return['mapping_table'] = array(
     '#theme' => 'table',
     '#header' => $table['header'],
     '#rows' => $table['rows'],
   );
 
-  // Add the pager to the return array
+  // Add the pager to the return array.
   $return['mapping_table_pager'] = array(
     '#theme' => 'pager',
   );
@@ -499,7 +499,7 @@ function personalization_admin_search_form_validate($form, &$form_state) {
       $form_state['values']['pz_sm_term'] = $tid;
 
       // Check if this mapping has already been added.
-	  $map = db_query('SELECT id FROM {personalization_keyword_mapping} WHERE keyword = :keyword AND tid = :tid LIMIT 1', array(':keyword' => $keyword, ':tid' => $tid))->fetchField();
+      $map = db_query('SELECT id FROM {personalization_keyword_mapping} WHERE keyword = :keyword AND tid = :tid LIMIT 1', array(':keyword' => $keyword, ':tid' => $tid))->fetchField();
 
       if ($map) {
         form_set_error('pz_sm_keyword', t('That mapping has already been added.'));
@@ -539,7 +539,7 @@ function personalization_admin_search_form_submit($form, &$form_state) {
  */
 function personalization_search_delete_confirm($form, &$form_state, $mapping_id) {
   $form['mapping_id'] = array('#type' => 'value', '#value' => $mapping_id);
-  
+
   $mapping = db_query('SELECT km.keyword, td.name FROM {personalization_keyword_mapping} km LEFT JOIN {taxonomy_term_data} td ON km.tid = td.tid WHERE km.id = :mapping_id LIMIT 1', array(':mapping_id' => $mapping_id))->fetchAssoc();
 
   if ($mapping) {
@@ -557,8 +557,8 @@ function personalization_search_delete_confirm($form, &$form_state, $mapping_id)
 }
 
  /**
- * Form submission handler for node_revision_delete_confirm().
- */
+  * Form submission handler for node_revision_delete_confirm().
+  */
 function personalization_search_delete_confirm_submit($form, &$form_state) {
   if ($form_state['values']['confirm']) {
     $mapping = db_query('SELECT km.keyword, td.name FROM {personalization_keyword_mapping} km LEFT JOIN {taxonomy_term_data} td ON km.tid = td.tid WHERE km.id = :mapping_id LIMIT 1', array(':mapping_id' => $form_state['values']['mapping_id']))->fetchAssoc();
@@ -566,7 +566,7 @@ function personalization_search_delete_confirm_submit($form, &$form_state) {
       db_delete('personalization_keyword_mapping')->condition('id', $form_state['values']['mapping_id'])->execute();
       watchdog('personalization', 'deleted mapping: %keyword = %term', array('%keyword' => $mapping['keyword'], '%term' => $mapping['name']));
       drupal_set_message(t('Mapping removed successfully.'));
-	}
+    }
   }
 
   $form_state['redirect'] = 'admin/config/system/personalization/search';

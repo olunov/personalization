@@ -88,7 +88,7 @@ function personalization_update_scores($terms, $type = 'page') {
 
   // Loop through the terms supplied so we can score them.
   foreach ($terms as $row) {
-	if (is_object($row)) {
+    if (is_object($row)) {
       // Scoring a page access.
       if ($type == 'page') {
         // Get vid of location vocabulary if we're tracking geo pages.
@@ -126,7 +126,7 @@ function personalization_update_scores($terms, $type = 'page') {
           'changed' => REQUEST_TIME,
         );
       }
-	}
+    }
   }
 
   // Need to delete before INSERT as db_merge does not support multiple records.

@@ -54,7 +54,7 @@ function personalization_get_user_latlon() {
   // Check if we're doing location personalization.
   if (array_filter($settings['pz_geo']) && $uid) {
     // Is the users location already stored?
-	$location = db_query('SELECT changed, latitude, longitude FROM {personalization_user_locations} WHERE user = :uid', array(':uid' => $uid))->fetchAssoc();
+    $location = db_query('SELECT changed, latitude, longitude FROM {personalization_user_locations} WHERE user = :uid', array(':uid' => $uid))->fetchAssoc();
 
     // Is the saved location still fresh?
     if ($location && $location['changed'] + ($settings['pz_user_score_ttl'] * 60) >= REQUEST_TIME) {
@@ -131,7 +131,7 @@ function personalization_user_location_score($tid = NULL) {
     $weight = $settings['pz_geo_user_weight'];
 
     // Does the user already have a location score?
-	$old = db_query('SELECT tid, score FROM {personalization_user_scores} WHERE user = :uid AND location <> 0 AND tid <> :tid', array(':uid' => $uid, ':tid' => $tid))->fetchAssoc();
+    $old = db_query('SELECT tid, score FROM {personalization_user_scores} WHERE user = :uid AND location <> 0 AND tid <> :tid', array(':uid' => $uid, ':tid' => $tid))->fetchAssoc();
 
     // Has the location not changed? I.e. there's nothing to do here.
     if (!$old || ($old && $old['tid'] != $tid)) {
@@ -145,7 +145,7 @@ function personalization_user_location_score($tid = NULL) {
       }
 
       // Does the user already have a score for this tid?
-	  $score = db_query('SELECT * FROM {personalization_user_scores} WHERE user = :uid AND tid = :tid', array(':uid' => $uid, ':tid' => $tid))->fetchAssoc();
+      $score = db_query('SELECT * FROM {personalization_user_scores} WHERE user = :uid AND tid = :tid', array(':uid' => $uid, ':tid' => $tid))->fetchAssoc();
 
       // Update existing score.
       if ($score) {

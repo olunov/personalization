@@ -5,5 +5,5 @@
  */
  ?>
  <li>
-<?php echo l($item->title, 'node/' . $item->nid); ?>
+<?php echo l($item['title'], 'node/' . $item['nid']); ?>
 </li>
