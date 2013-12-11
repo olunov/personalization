@@ -112,10 +112,9 @@ function personalization_menu() {
   );
 
   $items['admin/config/system/personalization/search/delete/%'] = array(
-    'page callback' => 'personalization_admin_search_delete',
-    'page arguments' => array(
-      6,
-    ),
+    'title' => 'Delete mapping',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('personalization_search_delete_confirm', 6),
     'access arguments' => array(
       'administer personalization settings',
     ),
@@ -192,22 +191,18 @@ function personalization_search_preprocess($text) {
 }
 
 /**
- * Implements hook_form_alter().
+ * Implements hook_form_FORM_ID_alter().
  */
-function personalization_form_alter(&$form, &$form_state, $form_id) {
-  switch ($form_id) {
-    case 'taxonomy_form_term':
-      // Is this the geo vocabulary?
-      if (isset($form['#term']) && is_array($form['#term']) && isset($form['#term']['vocabulary_machine_name']) && $form['#term']['vocabulary_machine_name'] == PERSONALIZATION_GEO_VOCABULARY_NAME) {
-        // Hide the description and path.
-        if (isset($form['description'])) {
-          $form['description']['#access'] = FALSE;
-        }
-        if (isset($form['path'])) {
-          $form['path']['#access'] = FALSE;
-        }
-      }
-      break;
+function personalization_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id) {
+  // Is this the geo vocabulary?
+  if (isset($form['#term']) && is_array($form['#term']) && isset($form['#term']['vocabulary_machine_name']) && $form['#term']['vocabulary_machine_name'] == PERSONALIZATION_GEO_VOCABULARY_NAME) {
+    // Hide the description and path.
+    if (isset($form['description'])) {
+      $form['description']['#access'] = FALSE;
+    }
+    if (isset($form['path'])) {
+      $form['path']['#access'] = FALSE;
+    }
   }
 }
 

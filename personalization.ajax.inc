@@ -7,7 +7,7 @@
 include_once "personalization.tracker.inc";
 
 /**
- * Implements hook_init().
+ * Receives the AJAX call that runs from the dom ready event of the page.
  */
 function personalization_ajax_init() {
   $response = array(
@@ -30,7 +30,7 @@ function personalization_ajax_init() {
 
     // Track internal site search.
     if (isset($_POST['path'])) {
-      $url = parse_url(check_plain($_POST['path']));
+      $url = parse_url($_POST['path']);
       if (isset($url['path'])) {
         // Trim the slashes and get the path sections as an array.
         $url['path'] = explode('/', trim($url['path'], '/'));

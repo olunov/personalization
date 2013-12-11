@@ -77,7 +77,7 @@ function personalization_update_scores($terms, $type = 'page') {
   $searches = 0;
 
   // Get the users current scores so we can increase them where appropriate.
-  $result = db_select('personalization_user_scores', 'pzs')->fields('pzs')->condition('user', $uid, '=')->execute()->fetchAll();
+  $result = db_query('SELECT user, tid FROM {personalization_user_scores} WHERE user = :user', array(':user' => $uid))->fetchAll();
 
   // Loop through the current scores and add them to a new array with a
   // concatinated key for quick lookup and update later.
@@ -88,43 +88,45 @@ function personalization_update_scores($terms, $type = 'page') {
 
   // Loop through the terms supplied so we can score them.
   foreach ($terms as $row) {
-    // Scoring a page access.
-    if ($type == 'page') {
-      // Get vid of location vocabulary if we're tracking geo pages.
-      if (array_filter($settings['pz_geo'])) {
-        $geo_v = taxonomy_vocabulary_machine_name_load(PERSONALIZATION_GEO_VOCABULARY_NAME);
-        $settings['pz_vocabulary_weights'][$geo_v->vid] = $settings['pz_geo_vocab_weight'];
+	if (is_object($row)) {
+      // Scoring a page access.
+      if ($type == 'page') {
+        // Get vid of location vocabulary if we're tracking geo pages.
+        if (array_filter($settings['pz_geo'])) {
+          $geo_v = taxonomy_vocabulary_machine_name_load(PERSONALIZATION_GEO_VOCABULARY_NAME);
+          $settings['pz_vocabulary_weights'][$geo_v->vid] = $settings['pz_geo_vocab_weight'];
+        }
+        $weight = isset($settings['pz_vocabulary_weights'][$row->vid]) ? $settings['pz_vocabulary_weights'][$row->vid] : 0;
+        $pages = 1;
       }
-      $weight = isset($settings['pz_vocabulary_weights'][$row->vid]) ? $settings['pz_vocabulary_weights'][$row->vid] : 0;
-      $pages = 1;
-    }
-    // Scoring search terms.
-    elseif ($type == 'search') {
-      $weight = $settings['pz_search_weight'];
-      $searches = 1;
-    }
+      // Scoring search terms.
+      elseif ($type == 'search') {
+        $weight = $settings['pz_search_weight'];
+        $searches = 1;
+      }
 
-    // The user already has a score for this term.
-    if (isset($scores[$uid . ':' . $row->tid])) {
-      // Update only the changing columns.
-      $scores[$uid . ':' . $row->tid]['pages'] += $pages;
-      $scores[$uid . ':' . $row->tid]['searches'] += $searches;
-      $scores[$uid . ':' . $row->tid]['score'] += $weight;
-      $scores[$uid . ':' . $row->tid]['changed'] = REQUEST_TIME;
-    }
-    // The user hasn't scored this term yet.
-    else {
-      $scores[$uid . ':' . $row->tid] = array(
-        'user' => $uid,
-        'vid' => $row->vid,
-        'tid' => $row->tid,
-        'pages' => $pages,
-        'searches' => $searches,
-        'location' => 0,
-        'score' => $weight,
-        'changed' => REQUEST_TIME,
-      );
-    }
+      // The user already has a score for this term.
+      if (isset($scores[$uid . ':' . $row->tid])) {
+        // Update only the changing columns.
+        $scores[$uid . ':' . $row->tid]['pages'] += $pages;
+        $scores[$uid . ':' . $row->tid]['searches'] += $searches;
+        $scores[$uid . ':' . $row->tid]['score'] += $weight;
+        $scores[$uid . ':' . $row->tid]['changed'] = REQUEST_TIME;
+      }
+      // The user hasn't scored this term yet.
+      else {
+        $scores[$uid . ':' . $row->tid] = array(
+          'user' => $uid,
+          'vid' => $row->vid,
+          'tid' => $row->tid,
+          'pages' => $pages,
+          'searches' => $searches,
+          'location' => 0,
+          'score' => $weight,
+          'changed' => REQUEST_TIME,
+        );
+      }
+	}
   }
 
   // Need to delete before INSERT as db_merge does not support multiple records.
@@ -161,14 +163,11 @@ function personalization_update_scores($terms, $type = 'page') {
  *   The search term.
  *
  * @return String
- *   The same search term after we've recored it.
+ *   The same search term after we've recorded it.
  */
 function personalization_track_search($text) {
   // Get all the mappings for this search term.
-  $result = db_select('personalization_keyword_mapping', 'pkm')->fields('pkm', array(
-    'tid',
-    'vid',
-  ))->condition('keyword', check_plain(trim($text)), '=')->execute()->fetchAll();
+  $result = db_query('SELECT tid, vid FROM {personalization_keyword_mapping} WHERE keyword  = :keyword', array(':keyword' => trim($text)))->fetchAll();
 
   if ($result) {
     // Send the mapped terms to the scoring function.
@@ -222,9 +221,9 @@ function personalization_expire_scores() {
  * interactions with the site. The list is sorted descending so that the most
  * relevant content is first.
  *
- * @param number $limit
+ * @param int $limit
  *   The number of items to return.
- * @param number $offset
+ * @param int $offset
  *   The offset for the query.
  * @param bool $matches_only
  *   Return only matched content rather than all content.

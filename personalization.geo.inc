@@ -10,8 +10,11 @@ define('PERSONALIZATION_GEO_VOCABULARY_NAME', 'personalization_geographic_locati
 /**
  * Returns the user's location.
  *
- * I.e. the term from location vocabulary that has the closest latitude and
- * longitude to the user's location.
+ * I.e. the term from the location vocabulary that has the closest latitude
+ * and longitude to the user's location.
+ *
+ * This function contains a query that uses trigonometry, whilst this should
+ * work in most database engines it has only been tested in MySQL.
  *
  * @return Int
  *   The term id of the closest location term.
@@ -51,7 +54,7 @@ function personalization_get_user_latlon() {
   // Check if we're doing location personalization.
   if (array_filter($settings['pz_geo']) && $uid) {
     // Is the users location already stored?
-    $location = db_select('personalization_user_locations', 'pzl')->fields('pzl')->condition('user', $uid, '=')->execute()->fetchAssoc();
+	$location = db_query('SELECT changed, latitude, longitude FROM {personalization_user_locations} WHERE user = :uid', array(':uid' => $uid))->fetchAssoc();
 
     // Is the saved location still fresh?
     if ($location && $location['changed'] + ($settings['pz_user_score_ttl'] * 60) >= REQUEST_TIME) {
@@ -117,7 +120,7 @@ function personalization_get_user_latlon() {
  * Boosts the score for the location term that is closest to the users
  * location. The score weighting is defined in the config form.
  *
- * @param number $tid
+ * @param int $tid
  *   The term id to score.
  */
 function personalization_user_location_score($tid = NULL) {
@@ -128,7 +131,7 @@ function personalization_user_location_score($tid = NULL) {
     $weight = $settings['pz_geo_user_weight'];
 
     // Does the user already have a location score?
-    $old = db_select('personalization_user_scores', 'pzs')->fields('pzs')->condition('user', $uid, '=')->condition('location', 0, '<>')->condition('tid', $tid, '<>')->execute()->fetchAssoc();
+	$old = db_query('SELECT tid, score FROM {personalization_user_scores} WHERE user = :uid AND location <> 0 AND tid <> :tid', array(':uid' => $uid, ':tid' => $tid))->fetchAssoc();
 
     // Has the location not changed? I.e. there's nothing to do here.
     if (!$old || ($old && $old['tid'] != $tid)) {
@@ -142,7 +145,7 @@ function personalization_user_location_score($tid = NULL) {
       }
 
       // Does the user already have a score for this tid?
-      $score = db_select('personalization_user_scores', 'pzs')->fields('pzs')->condition('user', $uid, '=')->condition('tid', $tid, '=')->execute()->fetchAssoc();
+	  $score = db_query('SELECT * FROM {personalization_user_scores} WHERE user = :uid AND tid = :tid', array(':uid' => $uid, ':tid' => $tid))->fetchAssoc();
 
       // Update existing score.
       if ($score) {
@@ -291,14 +294,14 @@ function personalization_add_geo_vocabulary() {
         'name' => $name,
         'vid' => $new_vocab->vid,
         'pz_geo_latitude' => array(
-          'und' => array(
+          LANGUAGE_NONE => array(
             array(
               'value' => $ll[0],
             ),
           ),
         ),
         'pz_geo_longitude' => array(
-          'und' => array(
+          LANGUAGE_NONE => array(
             array(
               'value' => $ll[1],
             ),
