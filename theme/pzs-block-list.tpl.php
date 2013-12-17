@@ -5,5 +5,7 @@
  */
  ?>
  <ul>
-<?php echo $nodes; ?>
+<?php foreach ($nodes as $link): ?>
+<?php echo render($link); ?>
+<?php endforeach; ?>
 </ul>

@@ -72,7 +72,7 @@ function personalization_ajax_init() {
  *
  * Results are limited to the vocabularies set under "General settings"
  *
- * @param String $str
+ * @param string $str
  *   The search string
  */
 function personalization_ajax_admin_search_terms($str = NULL) {
@@ -133,7 +133,7 @@ function personalization_ajax_user_location() {
 /**
  * Returns the content listing to the user.
  *
- * @param String $type
+ * @param string $type
  *   What we're rendering, e.g. block.
  * @param Int $limit
  *   The maximum nuber of items to return.

@@ -159,10 +159,10 @@ function personalization_update_scores($terms, $type = 'page') {
  * Scores terms for the user where their search keywords from an internal site
  * search match one of the admin defined mappings.
  *
- * @param String $text
+ * @param string $text
  *   The search term.
  *
- * @return String
+ * @return string
  *   The same search term after we've recorded it.
  */
 function personalization_track_search($text) {
@@ -249,7 +249,7 @@ function personalization_match_content($limit = 10, $offset = 0, $matches_only =
       $content = array($cache_key => $cache->data);
     }
     else {
-      // No cache find so let's do the heavey lifting.
+      // No cache find so let's do the heavy lifting.
       // Start our select query by selecting the tables and creating a SUM().
       $query = db_select('node', 'n');
       $query->leftJoin('taxonomy_index', 'ti', "n.nid = ti.nid");

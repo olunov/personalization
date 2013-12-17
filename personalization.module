@@ -270,15 +270,16 @@ function personalization_block_view($delta = '') {
       $block['subject'] = t('Suggested content');
       $items = array();
       foreach (personalization_match_content() as $row) {
-        $items[] = theme('pzs_block_list_item', array(
-          'item' => array('nid' => $row->nid, 'title' => $row->title),
-        ));
+        $items[] = array(
+          '#theme' => 'pzs_block_list_item',
+          '#item' => array('nid' => $row->nid, 'title' => $row->title),
+        );
       }
 
       if ($items) {
         $block['content'] = array(
           '#theme' => 'pzs_list_block',
-          '#nodes' => implode('', $items),
+          '#nodes' => $items,
         );
       }
       else {
@@ -299,7 +300,7 @@ function personalization_flush_caches() {
 /**
  * Returns a paginated list of personalized content.
  *
- * @return String
+ * @return string
  *   HTML for paginated listing.
  */
 function personalization_paginated_list($nodes_per_page = 10) {

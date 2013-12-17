@@ -365,8 +365,8 @@ function personalization_admin_update_scores_batch_finished() {
  * This page contains the "Add mapping" form as well as a paginated table of
  * existing mappings which can be removed.
  *
- * @return String
- *   HTML for the form and paginated list.
+ * @return array
+ *   A render array containing a table of results and pagination.
  */
 function personalization_admin_search() {
   $return = array();
@@ -477,7 +477,7 @@ function personalization_admin_search_form() {
  * Validates the new mapping.
  */
 function personalization_admin_search_form_validate($form, &$form_state) {
-  $keyword = $form_state['values']['pz_sm_keyword'];
+  $keyword = filter_xss($form_state['values']['pz_sm_keyword']);
   $tid = explode('(tid=', rtrim($form_state['values']['pz_sm_term'], ')'));
 
   $vocabularies = array();
@@ -490,7 +490,7 @@ function personalization_admin_search_form_validate($form, &$form_state) {
   }
 
   // Check the term is from the allowed vocabularies.
-  if (isset($tid[1]) && is_numeric($tid[1])) {
+  if (isset($tid[1]) && is_numeric($tid[1]) && $keyword) {
     $tid = db_select('taxonomy_term_data', 't')->condition('vid', $vocabularies, 'IN')->fields('t', array(
       'tid',
     ))->condition('tid', (int) $tid[1], '=')->range(0, 1)->execute()->fetchField();
@@ -521,7 +521,7 @@ function personalization_admin_search_form_submit($form, &$form_state) {
   $term = taxonomy_term_load((int) $form_state['values']['pz_sm_term']);
 
   $id = db_insert('personalization_keyword_mapping')->fields(array(
-    'keyword' => $form_state['values']['pz_sm_keyword'],
+    'keyword' => filter_xss($form_state['values']['pz_sm_keyword']),
     'vid' => $term->vid,
     'tid' => $term->tid,
     'created' => REQUEST_TIME,
