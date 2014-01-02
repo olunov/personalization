@@ -142,10 +142,10 @@ function personalization_schema() {
     'primary key' => array('id'),
   );
 
-  // User locations table - these are stored seperately as we do not want the
+  // User locations table - these are stored separately as we do not want the
   // higher score to be added multiple times.
   $schema['personalization_user_locations'] = array(
-    'description' => 'User locations table - these are stored seperately as we do not want the higher score to be added multiple times.',
+    'description' => 'User locations table - these are stored separately as we do not want the higher score to be added multiple times.',
     'fields' => array(
       'user' => array(
         'description' => 'The user ID, int if authenticated varchar for anonymous.',

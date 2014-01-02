@@ -162,7 +162,7 @@ function personalization_admin_validate($form, &$form_state) {
 /**
  * The submit function for the general settings form.
  *
- * This stores the config in one Drupal variable as having seperate values
+ * This stores the config in one Drupal variable as having separate values
  * resultsBoolean in many queries when tracking users, mainly around vocabulary
  * weighting.
  */
@@ -314,7 +314,7 @@ function personalization_admin_submit($form, &$form_state) {
         'title' => t('Recalculating user scores'),
         'init_message' => t("Users profile scores need to be recalculate based on the changes you've made."),
         'progress_message' => t('Processed @current out of @total batches.'),
-        'error_message' => t('An error occured, please check your settings.'),
+        'error_message' => t('An error occurred, please check your settings.'),
       );
 
       batch_set($batch);
@@ -415,8 +415,8 @@ function personalization_admin_search() {
   // Build the rows.
   foreach ($result as $mapping) {
     $table['rows'][] = array(
-      $mapping->keyword,
-      $mapping->name,
+      filter_xss($mapping->keyword),
+      filter_xss($mapping->name),
       l(t('delete'), 'admin/config/system/personalization/search/delete/' . $mapping->id),
     );
   }
@@ -477,7 +477,6 @@ function personalization_admin_search_form() {
  * Validates the new mapping.
  */
 function personalization_admin_search_form_validate($form, &$form_state) {
-  $keyword = filter_xss($form_state['values']['pz_sm_keyword']);
   $tid = explode('(tid=', rtrim($form_state['values']['pz_sm_term'], ')'));
 
   $vocabularies = array();
@@ -490,7 +489,7 @@ function personalization_admin_search_form_validate($form, &$form_state) {
   }
 
   // Check the term is from the allowed vocabularies.
-  if (isset($tid[1]) && is_numeric($tid[1]) && $keyword) {
+  if (isset($tid[1]) && is_numeric($tid[1]) && $form_state['values']['pz_sm_keyword']) {
     $tid = db_select('taxonomy_term_data', 't')->condition('vid', $vocabularies, 'IN')->fields('t', array(
       'tid',
     ))->condition('tid', (int) $tid[1], '=')->range(0, 1)->execute()->fetchField();
@@ -499,7 +498,7 @@ function personalization_admin_search_form_validate($form, &$form_state) {
       $form_state['values']['pz_sm_term'] = $tid;
 
       // Check if this mapping has already been added.
-      $map = db_query('SELECT id FROM {personalization_keyword_mapping} WHERE keyword = :keyword AND tid = :tid LIMIT 1', array(':keyword' => $keyword, ':tid' => $tid))->fetchField();
+      $map = db_query('SELECT id FROM {personalization_keyword_mapping} WHERE keyword = :keyword AND tid = :tid LIMIT 1', array(':keyword' => $form_state['values']['pz_sm_keyword'], ':tid' => $tid))->fetchField();
 
       if ($map) {
         form_set_error('pz_sm_keyword', t('That mapping has already been added.'));
@@ -521,7 +520,7 @@ function personalization_admin_search_form_submit($form, &$form_state) {
   $term = taxonomy_term_load((int) $form_state['values']['pz_sm_term']);
 
   $id = db_insert('personalization_keyword_mapping')->fields(array(
-    'keyword' => filter_xss($form_state['values']['pz_sm_keyword']),
+    'keyword' => $form_state['values']['pz_sm_keyword'],
     'vid' => $term->vid,
     'tid' => $term->tid,
     'created' => REQUEST_TIME,
