@@ -103,10 +103,10 @@ function personalization_admin() {
     '#title' => t("How should the user's location be ascertained"),
     '#default_value' => $settings['pz_geo'],
     '#options' => array(
-      'from_api' => t('Request location from the users IP automatically from http://freegeoip.net/ API'),
+      'from_api' => t('Request location from the users IP automatically from http://www.telize.com/ API'),
       'ask_user' => t('Ask the user for their location.'),
     ),
-    '#description' => t("If you select both options the user will only be asked if http://freegeoip.net/ cannot ascertain the location. Requesting the location from the user will require them to be using a HTML5 compliant browser and your Drupal theme to be HTML5."),
+    '#description' => t("If you select both options the user will only be asked if http://www.telize.com/ cannot ascertain the location. Requesting the location from the user will require them to be using a HTML5 compliant browser and your Drupal theme to be HTML5."),
   );
 
   $form['geographic_based']['pz_geo_user_weight'] = array(

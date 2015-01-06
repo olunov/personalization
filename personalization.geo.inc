@@ -64,9 +64,9 @@ function personalization_get_user_latlon() {
       );
     }
     elseif ($settings['pz_geo']['from_api']) {
-      // Can we grab from http://freegeoip.net?
+      // Can we grab from http://www.telize.com/?
       if ($settings['pz_geo']['from_api'] && ip_address()) {
-        $request = drupal_http_request("http://freegeoip.net/json/" . ip_address(), array(
+        $request = drupal_http_request("http://www.telize.com/geoip/" . ip_address(), array(
           'timeout' => 10,
         ));
 
