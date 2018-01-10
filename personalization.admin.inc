@@ -34,6 +34,7 @@ function personalization_admin() {
     '#size' => 6,
     '#maxlength' => 6,
     '#required' => TRUE,
+    '#element_validate' => array('element_validate_integer_positive'),
   );
 
   $form['user_settings']['pz_user_content_ttl'] = array(
@@ -44,6 +45,7 @@ function personalization_admin() {
     '#size' => 6,
     '#maxlength' => 6,
     '#required' => TRUE,
+    '#element_validate' => array('element_validate_integer_positive'),
   );
 
   $form['taxonomony_based'] = array(
@@ -68,7 +70,7 @@ function personalization_admin() {
     $form['taxonomony_based']['pz_vocab_weight_' . $k] = array(
       '#type' => 'textfield',
       '#description' => $v,
-      '#default_value' => isset($settings['pz_vocabulary_weights'][$k]) && $settings['pz_vocabulary_weights'][$k] ? $settings['pz_vocabulary_weights'][$k] : 10,
+      '#default_value' => !empty($settings['pz_vocabulary_weights'][$k]) ? $settings['pz_vocabulary_weights'][$k] : 10,
       '#size' => 6,
       '#maxlength' => 6,
     );
@@ -139,16 +141,6 @@ function personalization_admin() {
  * The validation function for the general settings form.
  */
 function personalization_admin_validate($form, &$form_state) {
-  // Ensure the profile TTL is valid.
-  if (!$form_state['values']['pz_user_score_ttl'] || !is_numeric($form_state['values']['pz_user_score_ttl'])) {
-    form_set_error('pz_user_score_ttl', t('Please enter a valid number of minutes.'));
-  }
-
-  // Ensure the cache TTL is valid.
-  if (!is_numeric($form_state['values']['pz_user_content_ttl'])) {
-    form_set_error('pz_user_content_ttl', t('Please enter a valid number of minutes.'));
-  }
-
   // Ensure the weightings are valid.
   if (isset($form['#vocabularies'])) {
     foreach ($form['#vocabularies'] as $vid => $term_name) {
@@ -172,6 +164,7 @@ function personalization_admin_submit($form, &$form_state) {
 
   // Check geo checkboxes and if one's been set make sure the geo vocabulary is
   // available.
+  // @TODO: Refactor it. Creating vocabulary should not be dependent on settings.
   if (array_filter($settings['pz_geo'])) {
     personalization_add_geo_vocabulary();
   }
@@ -194,6 +187,7 @@ function personalization_admin_submit($form, &$form_state) {
       }
     }
   }
+
   if ($geo_v) {
     $settings['pz_vocabularies'][$geo_v->vid] = $geo_v->vid;
   }
@@ -238,12 +232,21 @@ function personalization_admin_submit($form, &$form_state) {
     // Delete scores on vocabs no longer in use.
     if (isset($changes['pz_vocabularies'])) {
       $active_vocabularies = array_keys($settings['pz_vocabulary_weights']);
-      $active_vocabularies[] = $geo_v->vid;
+
+      // Check if vocabulary was created.
+      // @TODO: refactor it after dealing with creating location vocabulary.
+      if (!empty($geo_v)) {
+        $active_vocabularies[] = $geo_v->vid;
+      }
       db_delete('personalization_user_scores')->condition('vid', $active_vocabularies, 'NOT IN')->execute();
     }
 
     // Add the geo vid to the weights.
-    $settings['pz_vocabulary_weights'][$geo_v->vid] = $settings['pz_geo_vocab_weight'];
+    // Check if vocabulary was created.
+    // @TODO: refactor it after dealing with creating location vocabulary.
+    if (!empty($geo_v)) {
+      $settings['pz_vocabulary_weights'][$geo_v->vid] = $settings['pz_geo_vocab_weight'];
+    }
 
     // Get scores that need updating.
     $query = db_select('personalization_user_scores', 'pzs')->fields('pzs');
