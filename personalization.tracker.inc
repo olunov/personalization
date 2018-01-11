@@ -77,7 +77,7 @@ function personalization_update_scores($terms, $type = 'page') {
   $searches = 0;
 
   // Get the users current scores so we can increase them where appropriate.
-  $result = db_query('SELECT user, tid FROM {personalization_user_scores} WHERE user = :user', array(':user' => $uid))->fetchAll();
+  $result = db_query('SELECT user, vid, tid, pages, searches, location, score, changed FROM {personalization_user_scores} WHERE user = :user', array(':user' => $uid))->fetchAll();
 
   // Loop through the current scores and add them to a new array with a
   // concatinated key for quick lookup and update later.
