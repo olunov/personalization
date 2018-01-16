@@ -159,7 +159,7 @@ function personalization_init() {
 function personalization_exit() {
   // If the user doesn't have JS enabled we make a last ditch effort to track
   // them. This only works however if no advanced caching is enabled.
-  if (personalization_trackable() && !isset($_COOKIE['has_js'])) {
+  if (function_exists('personalization_trackable') && personalization_trackable() && !isset($_COOKIE['has_js'])) {
     personalization_track_page();
     personalization_get_user_location();
     personalization_track_external_search();
