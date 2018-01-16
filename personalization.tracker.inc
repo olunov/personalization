@@ -265,6 +265,9 @@ function personalization_match_content($limit = 10, $offset = 0, $matches_only =
       // Only get this user's matches.
       $query->condition('pzs.user', $uid, '=');
 
+      // Only get published nodes.
+      $query->condition('n.status', NODE_PUBLISHED, '=');
+
       // If we only want content that matches the user's behaviour we need to
       // check the match is NOT NULL.
       if ($matches_only) {
