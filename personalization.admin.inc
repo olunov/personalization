@@ -18,8 +18,10 @@ function personalization_admin() {
 
   $settings = variable_get('personalization_settings', array());
 
-  drupal_add_css(drupal_get_path('module', 'personalization') . '/css/admin_form.css');
-  drupal_add_js(drupal_get_path('module', 'personalization') . '/js/admin_form.js');
+  // Loading admin form related styles.
+  $form['#attached']['css'] = array(
+    drupal_get_path('module', 'personalization') . '/css/admin_form.css',
+  );
 
   $form['user_settings'] = array(
     '#type' => 'fieldset',
@@ -66,19 +68,42 @@ function personalization_admin() {
     '#title' => t('Weight to be applied to each vocabulary.'),
   );
 
+  // Array for collecting visibility states for detecting if any of
+  // checkboxes is selected.
+  $state_one_of_selected = array();
+
   foreach ($form['#vocabularies'] as $k => $v) {
+    // Settings visibility conditions for showing taxonomy weight.
+    $visibility_state = array(
+      ':input[name="pz_vocabularies[' . $k . ']"]' => array('checked' => TRUE),
+    );
+
     $form['taxonomony_based']['pz_vocab_weight_' . $k] = array(
       '#type' => 'textfield',
       '#description' => $v,
       '#default_value' => !empty($settings['pz_vocabulary_weights'][$k]) ? $settings['pz_vocabulary_weights'][$k] : 10,
       '#size' => 6,
       '#maxlength' => 6,
+      '#states' => array(
+        'visible' => $visibility_state,
+      ),
     );
+
+    // Adding state for detecting visibility state of the checkbox.
+    $state_one_of_selected[] = $visibility_state;
   }
+
+  // Settings visibility state to show only if any of checkboxes is selected.
+  $form['taxonomony_based']['pz_vocab_weight_title']['#states'] = array(
+    'visible' => $state_one_of_selected,
+  );
 
   $form['taxonomony_based']['pz_vocab_weight_desc'] = array(
     '#type' => 'item',
     '#description' => t('The weighting sets the importance of each vocabulary when selecting content for the user. For example if the node Categories is twice as important as Tags give Categories twice the weight.'),
+    '#states' => array(
+      'visible' => $state_one_of_selected,
+    ),
   );
 
   $form['search_based'] = array(
@@ -111,6 +136,12 @@ function personalization_admin() {
     '#description' => t("If you select both options the user will only be asked if http://www.telize.com/ cannot ascertain the location. Requesting the location from the user will require them to be using a HTML5 compliant browser and your Drupal theme to be HTML5."),
   );
 
+  // Settings visibility conditions for showing geo related weights.
+  $geo_state_one_of_selected = array(
+    array(':input[name="pz_geo[from_api]"]' => array('checked' => TRUE)),
+    array(':input[name="pz_geo[ask_user]"]' => array('checked' => TRUE)),
+  );
+
   $form['geographic_based']['pz_geo_user_weight'] = array(
     '#type' => 'textfield',
     '#title' => t("User's location weighting"),
@@ -118,6 +149,9 @@ function personalization_admin() {
     '#default_value' => $settings['pz_geo_user_weight'],
     '#size' => 6,
     '#maxlength' => 6,
+    '#states' => array(
+      'visible' => $geo_state_one_of_selected,
+    ),
   );
 
   $form['geographic_based']['pz_geo_vocab_weight'] = array(
@@ -127,6 +161,9 @@ function personalization_admin() {
     '#default_value' => $settings['pz_geo_vocab_weight'],
     '#size' => 6,
     '#maxlength' => 6,
+    '#states' => array(
+      'visible' => $geo_state_one_of_selected,
+    ),
   );
 
   $form['submit'] = array(
