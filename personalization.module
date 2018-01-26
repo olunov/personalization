@@ -171,10 +171,15 @@ function personalization_exit() {
  */
 function personalization_node_view($node, $view_mode, $langcode) {
   if ($view_mode == 'full') {
-    $setting = array(
-      'currentNid' => $node->nid,
-    );
-    drupal_add_js(array('personalization' => $setting), 'setting');
+    // Make sure full node view hook is invoked for current node view page.
+    $current_node = menu_get_object();
+    if (!empty($current_node) && ($current_node->nid == $node->nid)) {
+      // Load current node id to JS settings.
+      $setting = array(
+        'currentNid' => $node->nid,
+      );
+      drupal_add_js(array('personalization' => $setting), 'setting');
+    }
   }
 }
 
