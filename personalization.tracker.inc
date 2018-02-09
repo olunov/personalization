@@ -331,7 +331,9 @@ function personalization_get_user() {
   }
 
   if ($uid) {
-    setcookie('pz_user_id', $uid, time() + ($settings['pz_user_score_ttl'] * 60));
+    $params = session_get_cookie_params();
+    $expire = REQUEST_TIME + ($settings['pz_user_score_ttl'] * 60);
+    setcookie('pz_user_id', $uid, $expire, $params['path'], $params['domain'], FALSE, $params['httponly']);
   }
 
   return $uid;
