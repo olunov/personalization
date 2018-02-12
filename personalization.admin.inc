@@ -131,6 +131,7 @@ function personalization_admin() {
     '#default_value' => !empty($settings['pz_geo_enabled']) ? $settings['pz_geo_enabled'] : 0,
   );
 
+  // Define states for showing/hiding geo location settings.
   $pz_geo_enabled_state = array(
     'visible' => array(
       ':input[name="pz_geo_enabled"]' => array(
@@ -144,6 +145,7 @@ function personalization_admin() {
     'default' => t('Default'),
   );
 
+  // @TODO: Rebuild loading options with custom hook for extending.
   // Check if Smart IP is installed.
   if (module_exists('smart_ip')) {
     // Don't translate title of the module.
@@ -162,7 +164,7 @@ function personalization_admin() {
   <li><strong>Smart IP</strong> - geo location data are loaded from !smart_ip_link module.</li>
   <li><strong>IP Geolocation Views & Maps</strong> - geo location data are loaded from !ip_geoloc_link module.</li>
 </ul>
-If you don't see the option make sure the module is installed.
+If you don't see the option make sure corresponding module is installed.
 ", array(
     '!smart_ip_link' => l('Smart IP', 'https://www.drupal.org/project/smart_ip', array('attributes' => array('target' => '_blank'))),
     '!ip_geoloc_link' => l('IP Geolocation Views & Maps', 'https://www.drupal.org/project/ip_geoloc', array('attributes' => array('target' => '_blank'))),
@@ -287,7 +289,7 @@ function personalization_admin_submit($form, &$form_state) {
   // Recalculate all scores.
   $changes = array_diff($top_level_settings, $top_level_old_settings);
   $changes['pz_vocabularies'] = array_diff($settings['pz_vocabularies'], $old_settings['pz_vocabularies']);
-  $changes['pz_geo'] = array_diff($settings['pz_geo'], $old_settings['pz_geo']);
+  $changes['pz_geo'] = $settings['pz_geo'];
   $changes['pz_vocabulary_weights'] = array_diff($settings['pz_vocabulary_weights'], $old_settings['pz_vocabulary_weights']);
   $changes = array_filter($changes);
 

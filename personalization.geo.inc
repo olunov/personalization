@@ -52,57 +52,71 @@ function personalization_get_user_latlon() {
   $uid = personalization_get_user();
 
   // Check if we're doing location personalization.
-  if (array_filter($settings['pz_geo']) && $uid) {
+  if (!empty($settings['pz_geo_enabled']) && !empty($uid)) {
     // Is the users location already stored?
     $location = db_query('SELECT changed, latitude, longitude FROM {personalization_user_locations} WHERE user = :uid', array(':uid' => $uid))->fetchAssoc();
 
     // Is the saved location still fresh?
-    if ($location && $location['changed'] + ($settings['pz_user_score_ttl'] * 60) >= REQUEST_TIME) {
+    if (!empty($location['changed']) && ($location['changed'] + ($settings['pz_user_score_ttl'] * 60) >= REQUEST_TIME)) {
       return array(
         'latitude' => $location['latitude'],
         'longitude' => $location['longitude'],
       );
     }
-    elseif ($settings['pz_geo']['from_api']) {
-      // Can we grab from http://www.telize.com/?
-      if ($settings['pz_geo']['from_api'] && ip_address()) {
-        $request = drupal_http_request("http://www.telize.com/geoip/" . ip_address(), array(
-          'timeout' => 10,
-        ));
-
-        if (property_exists($request, 'data')) {
-          $result = json_decode($request->data, TRUE);
-        }
-        else {
-          $result = FALSE;
-        }
-
-        if ($result && isset($result['latitude']) && $result['latitude'] && isset($result['longitude']) && $result['longitude']) {
-          // Delete user's previously saved location.
-          if ($location) {
-            db_delete('personalization_user_locations')->condition('user', $uid, '=')->execute();
-          }
-
-          // Save the users new location.
-          db_insert('personalization_user_locations')->fields(array(
-            'user' => $uid,
-            'latitude' => $result['latitude'],
-            'longitude' => $result['longitude'],
-            'changed' => REQUEST_TIME,
-          ))->execute();
-
-          // Attribute the location term with the user location score.
-          personalization_user_location_score(personalization_get_user_location());
-
-          return array(
-            'latitude' => $result['latitude'],
-            'longitude' => $result['longitude'],
-          );
-        }
-        else {
-          return 0;
-        }
+    elseif (!empty($settings['pz_geo']) && $settings['pz_geo'] != 'default') {
+      // Checking if the module is installed.
+      $module_name = $settings['pz_geo'];
+      if (!module_exists($module_name)) {
+        watchdog('personalization', 'Module !module_name is not installed.', array('!module_name' => $module_name), WATCHDOG_ALERT);
+        return 0;
       }
+      $location = array();
+
+      switch ($module_name) {
+        case 'smart_ip':
+          $smart_ip_session = smart_ip_session_get('smart_ip');
+          // Smart IP user $_SESSION.
+          if (!is_null($smart_ip_session)) {
+            $location = $smart_ip_session['location'];
+          }
+          // Smart IP user object data.
+          else {
+            global $user;
+            if (isset($user->data['geoip_location'])) {
+              $smart_ip_session['location'] = $user->data['geoip_location'];
+              smart_ip_session_set('smart_ip', $smart_ip_session);
+              $location = $smart_ip_session['location'];
+            }
+          }
+          break;
+
+        case 'ip_geoloc':
+          // @TODO: add here loading latitude and longitude from ip_geoloc.
+          break;
+      }
+
+      if (!empty($location['latitude'] && !empty($location['longitude']))) {
+        // Delete existing user's geolocation data.
+        db_delete('personalization_user_locations')->condition('user', $uid, '=')->execute();
+
+        // Save the users new location.
+        db_insert('personalization_user_locations')->fields(array(
+          'user' => $uid,
+          'latitude' => $location['latitude'],
+          'longitude' => $location['longitude'],
+          'changed' => REQUEST_TIME,
+        ))->execute();
+
+        // Attribute the location term with the user location score.
+        personalization_user_location_score(personalization_get_user_location());
+
+        return array(
+          'latitude' => $location['latitude'],
+          'longitude' => $location['longitude'],
+        );
+      }
+
+      return 0;
     }
 
     // If we've gotten here that means we need to ask the user.

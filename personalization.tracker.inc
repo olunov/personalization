@@ -35,7 +35,7 @@ function personalization_track_page($nid = NULL) {
 
     if ($nid) {
       // Get vid of location vocabulary if we're tracking geo.
-      if (array_filter($settings['pz_geo'])) {
+      if (!empty($settings['pz_geo_enabled'])) {
         $geo_v = taxonomy_vocabulary_machine_name_load(PERSONALIZATION_GEO_VOCABULARY_NAME);
         $settings['pz_vocabularies'][$geo_v->vid] = $geo_v->vid;
       }
@@ -92,7 +92,7 @@ function personalization_update_scores($terms, $type = 'page') {
       // Scoring a page access.
       if ($type == 'page') {
         // Get vid of location vocabulary if we're tracking geo pages.
-        if (array_filter($settings['pz_geo'])) {
+        if (!empty($settings['pz_geo_enabled'])) {
           $geo_v = taxonomy_vocabulary_machine_name_load(PERSONALIZATION_GEO_VOCABULARY_NAME);
           $settings['pz_vocabulary_weights'][$geo_v->vid] = $settings['pz_geo_vocab_weight'];
         }
@@ -327,6 +327,7 @@ function personalization_get_user() {
     }
     else {
       $uid = uniqid(NULL, TRUE);
+      $_COOKIE['pz_user_id'] = $uid;
     }
   }
 
