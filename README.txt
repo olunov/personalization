@@ -24,7 +24,7 @@ Views & Maps module.
 
 NOTE: Smart IP and IPGV&M has own tools for requesting location from user by
 using HTML5 (Device Geolocation submodule of Smart IP, "Employ a free Google
-service" option in DATA COLLECTION OPTIONS). If you use one fo these modules it
+service" option in DATA COLLECTION OPTIONS). If you use one of these modules it
 makes sense to use their native tool for that, unless you have specific flow.
 
 IMPORTANT: Don't use at same time 'Default' option and enabled HTML5
