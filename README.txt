@@ -29,7 +29,8 @@ modules it makes sense to use their native tool for that, unless you have
 specific flow. Personalization module doesn't alter data loaded from Smart IP
 and IPGV&M, it just uses their existing functionality for loading user location
 data. So if you choose to use these modules (or one of them) and something
-doesn't work, make sure they are configured correctly.
+doesn't work, make sure they are configured correctly. Don't forget about user
+permissions.
 
 IMPORTANT: Don't use at same time 'Default' option and enabled HTML5
 functionality in Smart IP and IPGV&M for requesting location from user. Because
