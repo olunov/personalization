@@ -74,6 +74,7 @@ function personalization_get_user_latlon() {
 
       switch ($module_name) {
         case 'smart_ip':
+          // Load location prepared by smart_ip.
           $smart_ip_session = smart_ip_session_get('smart_ip');
           // Smart IP user $_SESSION.
           if (!is_null($smart_ip_session)) {
@@ -91,11 +92,12 @@ function personalization_get_user_latlon() {
           break;
 
         case 'ip_geoloc':
-          // @TODO: add here loading latitude and longitude from ip_geoloc.
+          // Load location prepared by ip_geoloc.
+          $location = ip_geoloc_get_visitor_location();
           break;
       }
 
-      if (!empty($location['latitude'] && !empty($location['longitude']))) {
+      if (!empty($location['latitude']) && !empty($location['longitude'])) {
         // Delete existing user's geolocation data.
         db_delete('personalization_user_locations')->condition('user', $uid, '=')->execute();
 
