@@ -145,7 +145,7 @@ function personalization_admin() {
     'default' => t('Default'),
   );
 
-  // @TODO: Rebuild loading options with custom hook for extending.
+  // @TODO: rebuild loading options with hook for extending.
   // Check if Smart IP is installed.
   if (module_exists('smart_ip')) {
     // Don't translate title of the module.
@@ -164,7 +164,7 @@ function personalization_admin() {
   <li><strong>Smart IP</strong> - geo location data are loaded from !smart_ip_link module.</li>
   <li><strong>IP Geolocation Views & Maps</strong> - geo location data are loaded from !ip_geoloc_link module.</li>
 </ul>
-If you don't see the option make sure corresponding module is installed.
+If you don't see the option make sure corresponding module is installed. Please check README.txt for details.
 ", array(
     '!smart_ip_link' => l('Smart IP', 'https://www.drupal.org/project/smart_ip', array('attributes' => array('target' => '_blank'))),
     '!ip_geoloc_link' => l('IP Geolocation Views & Maps', 'https://www.drupal.org/project/ip_geoloc', array('attributes' => array('target' => '_blank'))),
