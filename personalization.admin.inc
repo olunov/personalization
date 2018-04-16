@@ -158,17 +158,18 @@ function personalization_admin() {
     $pz_geo_options['ip_geoloc'] = 'IP Geolocation Views & Maps';
   }
 
-  $pz_geo_description = t("
-<ul>
-  <li><strong>Default</strong> - requesting the location from the user will require them to be using a HTML5 compliant browser and your Drupal theme to be HTML5</li>
-  <li><strong>Smart IP</strong> - geo location data are loaded from !smart_ip_link module.</li>
-  <li><strong>IP Geolocation Views & Maps</strong> - geo location data are loaded from !ip_geoloc_link module.</li>
-</ul>
-If you don't see the option make sure corresponding module is installed. Please check README.txt for details.
-", array(
-    '!smart_ip_link' => l('Smart IP', 'https://www.drupal.org/project/smart_ip', array('attributes' => array('target' => '_blank'))),
-    '!ip_geoloc_link' => l('IP Geolocation Views & Maps', 'https://www.drupal.org/project/ip_geoloc', array('attributes' => array('target' => '_blank'))),
-  ));
+  // Creating list of available options for settings in the description.
+  $pz_geo_items_list = array();
+  $pz_geo_items_list[] = t('<strong>Default</strong> - requesting the location from the user will require them to be using a HTML5 compliant browser and your Drupal theme to be HTML5</li>');
+  
+  $pz_geo_items_list[] = t('<strong>Smart IP</strong> - geo location data are loaded from !smart_ip_link module.',
+    array('!smart_ip_link' => l('Smart IP', 'https://www.drupal.org/project/smart_ip', array('attributes' => array('target' => '_blank')))));
+  
+  $pz_geo_items_list[] = t('<strong>IP Geolocation Views & Maps</strong> - geo location data are loaded from !ip_geoloc_link module.',
+    array('!ip_geoloc_link' => l('IP Geolocation Views & Maps', 'https://www.drupal.org/project/ip_geoloc', array('attributes' => array('target' => '_blank')))));
+
+  $pz_geo_description = t("!pz_geo_items_list If you don't see the option make sure corresponding module is installed. Please check README.txt for details.",
+    array('!pz_geo_items_list' => theme('item_list', array('items' => $pz_geo_items_list))));
 
   $form['geographic_based']['pz_geo'] = array(
     '#type' => 'radios',
