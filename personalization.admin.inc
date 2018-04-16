@@ -152,7 +152,7 @@ function personalization_admin() {
     $pz_geo_options['smart_ip'] = 'Smart IP';
   }
 
-  // Check if Smart IP is installed.
+  // Check if IP Geoloc is installed.
   if (module_exists('ip_geoloc')) {
     // Don't translate title of the module.
     $pz_geo_options['ip_geoloc'] = 'IP Geolocation Views & Maps';
