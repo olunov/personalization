@@ -34,8 +34,11 @@ var pzs_loader = '';
         dataType: 'json',
         success: function(response){
           if (response.track) {
-            if (response.get_location) {
-              personalization.get_location();
+            // Checking if loading geolocation is enabled and if way is set as 'default'.
+            if (Drupal.settings.personalization.pz_geo_enabled && Drupal.settings.personalization.pz_geo == 'default') {
+              if (response.get_location) {
+                  personalization.get_location();
+              }
             }
 
             personalization.$block = $('#block-personalization-personalized-content');

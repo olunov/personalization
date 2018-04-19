@@ -12,3 +12,35 @@ Installing the module:
 You must also enable the core Taxonomy module to use Personalization
 
 Navigate to administer >> build >> modules. Enable Personalization
+
+GEOGRAPHICAL BASED PERSONALIZATION
+
+There are three options:
+* Default - requesting the location from the user will require them to be using
+a HTML5 compliant browser and your Drupal theme to be HTML5.
+* Smart IP - geo location data are loaded from Smart IP module.
+* IP Geolocation Views & Maps - geo location data are loaded from IP Geolocation
+Views & Maps module.
+
+NOTE: Smart IP and IPGV&M has own tools for requesting location from user by
+using HTML5 (Device Geolocation submodule of Smart IP, "Employ a free Google
+service" option in DATA COLLECTION OPTIONS for IPGV&M). If you use one of these
+modules it makes sense to use their native tool for that, unless you have
+specific flow. Personalization module doesn't alter data loaded from Smart IP
+and IPGV&M, it just uses their existing functionality for loading user location
+data. So if you choose to use these modules (or one of them) and something
+doesn't work, make sure they are configured correctly. Don't forget about user
+permissions.
+
+IMPORTANT: Don't use at same time 'Default' option and enabled HTML5
+functionality in Smart IP and IPGV&M for requesting location from user. Because
+that will prompt user for location several times.
+
+For more details of how to configure Smart IP and IPGV&M see their README.txt
+and modules pages on drupal.org:
+* Smart IP (https://drupal.org/project/smart_ip)
+* IP Geolocation Views & Maps (https://drupal.org/project/ip_geoloc)
+
+IMPORTANT: In latest versions of browsers requesting location from user is
+possible ONLY on HTTPS. For development, testing purpose it can be self signed
+certificate.

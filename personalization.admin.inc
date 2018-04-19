@@ -125,21 +125,59 @@ function personalization_admin() {
     '#title' => t('Geographical based personalization'),
   );
 
-  $form['geographic_based']['pz_geo'] = array(
-    '#type' => 'checkboxes',
-    '#title' => t("How should the user's location be ascertained"),
-    '#default_value' => $settings['pz_geo'],
-    '#options' => array(
-      'from_api' => t('Request location from the users IP automatically from http://www.telize.com/ API'),
-      'ask_user' => t('Ask the user for their location.'),
-    ),
-    '#description' => t("If you select both options the user will only be asked if http://www.telize.com/ cannot ascertain the location. Requesting the location from the user will require them to be using a HTML5 compliant browser and your Drupal theme to be HTML5."),
+  $form['geographic_based']['pz_geo_enabled'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable loading geo location data'),
+    '#default_value' => !empty($settings['pz_geo_enabled']) ? $settings['pz_geo_enabled'] : 0,
   );
 
-  // Settings visibility conditions for showing geo related weights.
-  $geo_state_one_of_selected = array(
-    array(':input[name="pz_geo[from_api]"]' => array('checked' => TRUE)),
-    array(':input[name="pz_geo[ask_user]"]' => array('checked' => TRUE)),
+  // Define states for showing/hiding geo location settings.
+  $pz_geo_enabled_state = array(
+    'visible' => array(
+      ':input[name="pz_geo_enabled"]' => array(
+        'checked' => TRUE,
+      )
+    ),
+  );
+
+  // Load options depending on installed modules.
+  $pz_geo_options = array(
+    'default' => t('Default'),
+  );
+
+  // @TODO: rebuild loading options with hook for extending.
+  // Check if Smart IP is installed.
+  if (module_exists('smart_ip')) {
+    // Don't translate title of the module.
+    $pz_geo_options['smart_ip'] = 'Smart IP';
+  }
+
+  // Check if IP Geoloc is installed.
+  if (module_exists('ip_geoloc')) {
+    // Don't translate title of the module.
+    $pz_geo_options['ip_geoloc'] = 'IP Geolocation Views & Maps';
+  }
+
+  // Creating list of available options for settings in the description.
+  $pz_geo_items_list = array();
+  $pz_geo_items_list[] = t('<strong>Default</strong> - requesting the location from the user will require them to be using a HTML5 compliant browser and your Drupal theme to be HTML5</li>');
+  
+  $pz_geo_items_list[] = t('<strong>Smart IP</strong> - geo location data are loaded from !smart_ip_link module.',
+    array('!smart_ip_link' => l('Smart IP', 'https://www.drupal.org/project/smart_ip', array('attributes' => array('target' => '_blank')))));
+  
+  $pz_geo_items_list[] = t('<strong>IP Geolocation Views & Maps</strong> - geo location data are loaded from !ip_geoloc_link module.',
+    array('!ip_geoloc_link' => l('IP Geolocation Views & Maps', 'https://www.drupal.org/project/ip_geoloc', array('attributes' => array('target' => '_blank')))));
+
+  $pz_geo_description = t("!pz_geo_items_list If you don't see the option make sure corresponding module is installed. Please check README.txt for details.",
+    array('!pz_geo_items_list' => theme('item_list', array('items' => $pz_geo_items_list))));
+
+  $form['geographic_based']['pz_geo'] = array(
+    '#type' => 'radios',
+    '#title' => t("Choose method to load geo location data:"),
+    '#default_value' => !empty($settings['pz_geo']) ? $settings['pz_geo'] : 'default',
+    '#options' => $pz_geo_options,
+    '#states' => $pz_geo_enabled_state,
+    '#description' => $pz_geo_description,
   );
 
   $form['geographic_based']['pz_geo_user_weight'] = array(
@@ -149,9 +187,7 @@ function personalization_admin() {
     '#default_value' => $settings['pz_geo_user_weight'],
     '#size' => 6,
     '#maxlength' => 6,
-    '#states' => array(
-      'visible' => $geo_state_one_of_selected,
-    ),
+    '#states' => $pz_geo_enabled_state,
   );
 
   $form['geographic_based']['pz_geo_vocab_weight'] = array(
@@ -161,9 +197,7 @@ function personalization_admin() {
     '#default_value' => $settings['pz_geo_vocab_weight'],
     '#size' => 6,
     '#maxlength' => 6,
-    '#states' => array(
-      'visible' => $geo_state_one_of_selected,
-    ),
+    '#states' => $pz_geo_enabled_state,
   );
 
   $form['submit'] = array(
@@ -202,7 +236,7 @@ function personalization_admin_submit($form, &$form_state) {
   // Check geo checkboxes and if one's been set make sure the geo vocabulary is
   // available.
   // @TODO: Refactor it. Creating vocabulary should not be dependent on settings.
-  if (array_filter($settings['pz_geo'])) {
+  if (!empty($settings['pz_geo'])) {
     personalization_add_geo_vocabulary();
   }
 
@@ -256,7 +290,7 @@ function personalization_admin_submit($form, &$form_state) {
   // Recalculate all scores.
   $changes = array_diff($top_level_settings, $top_level_old_settings);
   $changes['pz_vocabularies'] = array_diff($settings['pz_vocabularies'], $old_settings['pz_vocabularies']);
-  $changes['pz_geo'] = array_diff($settings['pz_geo'], $old_settings['pz_geo']);
+  $changes['pz_geo'] = $settings['pz_geo'];
   $changes['pz_vocabulary_weights'] = array_diff($settings['pz_vocabulary_weights'], $old_settings['pz_vocabulary_weights']);
   $changes = array_filter($changes);
 

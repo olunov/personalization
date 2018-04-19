@@ -144,9 +144,23 @@ function personalization_permission() {
  * Implements hook_init().
  */
 function personalization_init() {
+  // @TODO: split personalization.js to loading content part and gelocation
+  // detection.
+  // Loading personalization settings.
+  $personalization_settings = variable_get('personalization_settings', array());
+
+  // Getting if loading geolocation is enabled.
+  $pz_geo_enabled = !empty($personalization_settings['pz_geo_enabled']);
+
+  // Getting way to load geolocation data.
+  $pz_geo = !empty($personalization_settings['pz_geo']) ? $personalization_settings['pz_geo'] : 'default';
+
   $setting = array(
     'module_path' => drupal_get_path('module', 'personalization'),
+    'pz_geo_enabled' => $pz_geo_enabled,
+    'pz_geo' => $pz_geo,
   );
+
   drupal_add_js(array('personalization' => $setting), 'setting');
 
   module_load_include('inc', 'personalization', 'personalization.geo');
