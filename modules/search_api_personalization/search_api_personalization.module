@@ -1,0 +1,20 @@
+<?php
+
+/**
+ * @file
+ * Contains main functionality for the module.
+ */
+
+/**
+ * Implements hook_search_api_processor_info().
+ */
+function search_api_personalization_search_api_processor_info() {
+  $callbacks['search_api_personalization_processor'] = array(
+    'name' => t('Search API Personalization processor'),
+    'description' => t('Lets integrate personalization to Search API.'),
+    'class' => 'SearchApiPersonalizationProcessor',
+    'weight' => -1,
+  );
+
+  return $callbacks;
+}
