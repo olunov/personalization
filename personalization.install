@@ -203,21 +203,28 @@ function personalization_install() {
   $settings = array(
     'pz_user_score_ttl' => 43829,
     'pz_user_content_ttl' => 10,
-    'pz_user_type' => array(
-      'Anonymous users' => 0,
-      'Authenticated users' => 0,
-    ),
     'pz_vocabularies' => array(),
     'pz_vocabulary_weights' => array(),
     'pz_search_weight' => 30,
-    'pz_geo' => array(
-      'from_api' => 0,
-      'ask_user' => 0,
-    ),
+    'pz_geo_enabled' => 0,
+    'pz_geo' => 'default',
     'pz_geo_user_weight' => 50,
     'pz_geo_vocab_weight' => 10,
   );
 
+  variable_set('personalization_settings', $settings);
+}
+
+/**
+ * Update `personalization_settings` to fix default values for the form.
+ */
+function personalization_update_7001() {
+  $settings = variable_get('personalization_settings', array());
+  if (isset($settings['pz_user_type'])) {
+    unset($settings['pz_user_type']);
+  }
+  $settings['pz_geo_enabled'] = 0;
+  $settings['pz_geo'] = 'default';
   variable_set('personalization_settings', $settings);
 }
 
