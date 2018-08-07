@@ -23,6 +23,7 @@ index you would like to track and choose operation 'Filters' from options list
 ##MAINTAINERS
 Current maintainers:
 * Oleksandr Lunov ([alunyov](https://www.drupal.org/user/103985))
+* Dan Ashdown ([danashdown](https://www.drupal.org/user/1225806))
 
 Supporting organizations: 
 * [EPAM Systems](https://www.drupal.org/epam-systems)
