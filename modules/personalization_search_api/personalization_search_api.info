@@ -1,0 +1,8 @@
+name = Personalization Search API
+description = Adds ability to personalize search through Search API.
+package = personalization
+core = 7.x
+dependencies[] = personalization
+dependencies[] = search_api
+
+files[] = includes/processor.inc
