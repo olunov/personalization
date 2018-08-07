@@ -2,13 +2,13 @@
 
 /**
  * @file
- * Contains SearchApiPersonalizationProcessor.
+ * Contains PersonalizationSearchApiProcessor.
  */
 
 /**
  * Processor for recording searching activity.
  */
-class SearchApiPersonalizationProcessor extends SearchApiAbstractProcessor {
+class PersonalizationSearchApiProcessor extends SearchApiAbstractProcessor {
 
   /**
    * {@inheritdoc}
